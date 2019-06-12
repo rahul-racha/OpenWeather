@@ -20,14 +20,27 @@
             app:titleTextAppearance="@style/ToolbarTextAppearance"
             style="@style/ToolbarTheme"/>
 
-    <ListView
-            android:id="@+id/locations_listView"
+    <fragment
+            android:id="@+id/nav_host_fragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:background="@android:color/darker_gray"
+            android:layout_weight="1"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            app:navGraph="@navigation/mobile_navigation"
+            app:defaultNavHost="true"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar" app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-    </ListView>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!--<ListView-->
+            <!--android:id="@+id/locations_listView"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="0dp"-->
+            <!--android:background="@android:color/white"-->
+            <!--app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--app:layout_constraintTop_toBottomOf="@+id/toolbar" app:layout_constraintStart_toStartOf="parent"-->
+            <!--app:layout_constraintEnd_toEndOf="parent">-->
+    <!--</ListView>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

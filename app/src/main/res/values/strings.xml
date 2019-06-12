@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">openweather</string>
     <string name="fTitle">open</string>
-    <string name="bTitle">Weather</string>
-    <string name="app_title">weather</string>
+    <string name="bTitle">weather</string>
+    <string name="app_title">openweather</string>
+    <string name="location_logo_desc">logo representing location\'s current weather</string>
 </resources>

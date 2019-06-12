@@ -2,12 +2,13 @@ package com.rahul.weatherapp.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
-import android.view.ViewGroup
-import android.widget.BaseAdapter
 import android.widget.ListView
 import androidx.navigation.NavController
 import com.rahul.weatherapp.R
+import androidx.navigation.Navigation
+import androidx.navigation.ui.NavigationUI
+import kotlinx.android.synthetic.main.location_row.view.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,34 +20,61 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
         setViewElements()
+        setNavController()
     }
 
     private fun setViewElements() {
-        locationsListView = findViewById<ListView>(R.id.locations_listView)
-//        locationsListView.adapter = LocationsAdapter()
+//        locationsListView = findViewById<ListView>(R.id.locations_listView)
+//        locationsListView.adapter = LocationsAdapter(context = this)
     }
 
-//    override fun onSupportNavigateUp(): Boolean {
-//        return super.onSupportNavigateUp(drawerLayout: null, navController)
-//    }
+    private fun setNavController() {
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment)
+        NavigationUI.setupActionBarWithNavController(this, navController)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return NavigationUI.navigateUp(navController, null)
+    }
 
 
-//    private class LocationsAdapter: BaseAdapter() {
+//    private class LocationsAdapter(context: Context): BaseAdapter() {
+//
+//        private val mContext: Context
+//
+//        init {
+//            mContext = context
+//        }
 //
 //        override fun getCount(): Int {
-//            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//            return 10
 //        }
 //
 //        override fun getItemId(position: Int): Long {
-//            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//            return position.toLong()
 //        }
 //
 //        override fun getItem(position: Int): Any {
-//            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//            return "private String" //To change body of created functions use File | Settings | File Templates.
 //        }
 //
-//        override fun getView(p0: Int, p1: View?, p2: ViewGroup?): View {
-//
+//        override fun getView(p0: Int, convertView: View?, viewGroup: ViewGroup?): View {
+//            val locRow: View
+//            if (convertView == null) {
+//                val layoutInflater = LayoutInflater.from(mContext)
+//                locRow = layoutInflater.inflate(R.layout.location_row, viewGroup, false)
+//                val logoImageView = locRow.locLogoImageView
+////                val logoImageView = locRow.findViewById<ImageView>(R.id.locLogoImageView)
+//                val viewHolder = ViewHolder(logo = logoImageView)
+//                locRow.tag = viewHolder
+//            } else {
+//                locRow = convertView
+//            }
+//            val viewHolder = locRow.tag as ViewHolder
+////            viewHolder.logo =
+//            return locRow
 //        }
+//
+//        private class ViewHolder(val logo: ImageView)
 //    }
 }
