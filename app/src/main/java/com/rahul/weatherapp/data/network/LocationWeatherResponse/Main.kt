@@ -1,4 +1,4 @@
-package com.rahul.weatherapp.data.Response.LocationWeather
+package com.rahul.weatherapp.data.network.LocationWeatherResponse
 
 
 import com.google.gson.annotations.SerializedName

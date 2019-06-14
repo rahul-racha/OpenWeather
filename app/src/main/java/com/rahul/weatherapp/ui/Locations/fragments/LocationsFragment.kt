@@ -15,10 +15,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.rahul.weatherapp.R
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import com.rahul.weatherapp.data.OpenWeatherAPIService
+import com.rahul.weatherapp.data.network.ConnectivityInterceptor
+import com.rahul.weatherapp.data.network.ConnectivityInterceptorImpl
+import com.rahul.weatherapp.data.network.OpenWeatherAPIService
+import com.rahul.weatherapp.internal.NoConnectivityException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -49,11 +52,16 @@ class  LocationsFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(LocationsViewModel::class.java)
         // TODO: Use the ViewModel
-        val apiService = OpenWeatherAPIService()
+        val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(context!!))
 
         GlobalScope.launch(Dispatchers.Main) {
-            val rep = apiService.getLocationWeather("Wexford, us").await()
-            Log.d("Response", rep.weather.toString())
+            try {
+                val rep = apiService.getLocationWeather("Wexford, us").await()
+                Log.d("Response", rep.weather.toString())
+            } catch (e: NoConnectivityException) {
+                Toast.makeText(context, "No internet in coroutine", Toast.LENGTH_SHORT).show()
+                Log.d("INTERNET", "No internet")
+            }
         }
     }
 

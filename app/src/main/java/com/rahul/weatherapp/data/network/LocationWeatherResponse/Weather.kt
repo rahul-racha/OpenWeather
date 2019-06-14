@@ -1,4 +1,4 @@
-package com.rahul.weatherapp.data.Response.LocationWeather
+package com.rahul.weatherapp.data.network.LocationWeatherResponse
 
 
 data class Weather(

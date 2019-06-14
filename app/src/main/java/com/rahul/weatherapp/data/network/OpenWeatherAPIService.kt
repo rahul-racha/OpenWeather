@@ -1,7 +1,7 @@
-package com.rahul.weatherapp.data
+package com.rahul.weatherapp.data.network
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
-import com.rahul.weatherapp.data.Response.LocationWeather.LocationWeatherResponse
+import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 import kotlinx.coroutines.Deferred
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -21,8 +21,15 @@ interface OpenWeatherAPIService {
         @Query(value = "q") cityName: String
     ): Deferred<LocationWeatherResponse>
 
+    @GET(value = "weather")
+    fun getLocationWeatherByID(
+        @Query(value = "id") cityID: String
+    ): Deferred<LocationWeatherResponse>
+
     companion object {
-        operator fun invoke(): OpenWeatherAPIService {
+        operator fun invoke(
+            connectivityInterceptor: ConnectivityInterceptor
+        ): OpenWeatherAPIService {
             val requestInterceptor = Interceptor { chain ->
                 val newUrl = chain.request()
                     .url()
@@ -40,6 +47,7 @@ interface OpenWeatherAPIService {
 
             val okHttpClient = OkHttpClient.Builder()
                 .addInterceptor(requestInterceptor)
+                .addInterceptor(connectivityInterceptor)
                 .build()
 
             return Retrofit.Builder()
