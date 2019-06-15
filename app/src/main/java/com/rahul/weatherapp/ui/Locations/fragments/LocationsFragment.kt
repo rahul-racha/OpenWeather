@@ -25,6 +25,7 @@ import com.rahul.weatherapp.internal.NoConnectivityException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import android.preference.PreferenceManager
 
 
 class  LocationsFragment : Fragment() {
@@ -41,10 +42,7 @@ class  LocationsFragment : Fragment() {
     ): View? {
         val rootView = inflater.inflate(R.layout.locations_fragment, container, false)
         val toolbar: Toolbar = activity!!.findViewById(R.id.toolbar)
-        if (null != toolbar) {
-//            (activity as AppCompatActivity).setSupportActionBar(toolbar)
-            setToolbarTitle(toolbar)
-        }
+        setToolbarTitle(toolbar)
         return rootView
     }
 
@@ -52,17 +50,20 @@ class  LocationsFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(LocationsViewModel::class.java)
         // TODO: Use the ViewModel
-        val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(context!!))
+        handleDefaultPreferences()
+        viewModel.loadSavedLocations()
 
-        GlobalScope.launch(Dispatchers.Main) {
-            try {
-                val rep = apiService.getLocationWeather("Wexford, us").await()
-                Log.d("Response", rep.weather.toString())
-            } catch (e: NoConnectivityException) {
-                Toast.makeText(context, "No internet in coroutine", Toast.LENGTH_SHORT).show()
-                Log.d("INTERNET", "No internet")
-            }
-        }
+//        val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(context!!))
+//
+//        GlobalScope.launch(Dispatchers.Main) {
+//            try {
+//                val rep = apiService.getLocationWeather("Wexford, us").await()
+//                Log.d("Response", rep.weather.toString())
+//            } catch (e: NoConnectivityException) {
+//                Toast.makeText(context, "No internet in coroutine", Toast.LENGTH_SHORT).show()
+//                Log.d("INTERNET", "No internet")
+//            }
+//        }
     }
 
     private fun setToolbarTitle(toolbar: Toolbar) {
@@ -73,6 +74,18 @@ class  LocationsFragment : Fragment() {
             spannableContent.setSpan(ForegroundColorSpan(Color.RED), 0, modifyPart.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
             spannableContent.setSpan(StyleSpan(Typeface.BOLD), modifyPart.length, titleString.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
             toolbar.title = spannableContent
+        }
+    }
+
+    private fun handleDefaultPreferences() {
+        PreferenceManager.getDefaultSharedPreferences(activity!!).apply {
+            if (!getBoolean(viewModel.FIRST_LAUNCH_COMPLETED, false)) {
+                viewModel.initLocationDatabase()
+                edit().apply {
+                    putBoolean(viewModel.FIRST_LAUNCH_COMPLETED, true)
+                    apply()
+                }
+            }
         }
     }
 

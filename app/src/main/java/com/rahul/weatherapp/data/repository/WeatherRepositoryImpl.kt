@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.rahul.weatherapp.data.database.LocationDao
 import com.rahul.weatherapp.data.database.entity.Location
+import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 import com.rahul.weatherapp.data.network.WeatherNetworkDataSource
 import kotlinx.coroutines.Dispatchers
@@ -16,40 +17,45 @@ class WeatherRepositoryImpl(
     private val weatherNetworkDataSource: WeatherNetworkDataSource
 ) : WeatherRepository {
 
-    val allLocations: LiveData<List<Location>> = locationDao.getAllLocations()
-    private val currentLocationWeather: MutableLiveData<LocationWeatherResponse> = MutableLiveData<LocationWeatherResponse>()
+    // Mark: Call on worker thread
+    val allSavedLocations: List<Location>
+        get() = locationDao.getAllLocations()
+    private val currentLocationWeather = MutableLiveData<LocationWeatherResponse>()
+    private val bulkLocationWeather = MutableLiveData<BulkLocationWeatherResponse>()
 
     init {
         weatherNetworkDataSource.downloadedLocationWeather.observeForever {
             currentLocationWeather.postValue(it)
         }
+        weatherNetworkDataSource.downloadedBulkLocationWeather.observeForever {
+            bulkLocationWeather.postValue(it)
+        }
     }
 
     override suspend fun fetchLocationWeather(
-        cityName: String,
-        countryCode: String
-    ): LiveData<LocationWeatherResponse> {
-        weatherNetworkDataSource.fetchLocationWeather(cityName, countryCode)
-        return currentLocationWeather
-
+        zipCode: String,
+        countryCode: String,
+        callback: ((response: LocationWeatherResponse) -> Unit)
+    ) {
+        weatherNetworkDataSource.fetchLocationWeather(zipCode, countryCode, callback)
     }
 
-    override suspend fun fetchLocationWeatherByID(cityID: String): LiveData<LocationWeatherResponse> {
-        weatherNetworkDataSource.fetchLocationWeather(cityID)
-        return currentLocationWeather
+    override suspend fun fetchLocationWeather(cityID: String,
+                                              callback: ((response: BulkLocationWeatherResponse) -> Unit)) {
+        weatherNetworkDataSource.fetchLocationWeather(cityID,callback)
     }
 
     @WorkerThread
-    fun insert(location: Location) {
-        GlobalScope.launch(Dispatchers.IO) {
-            locationDao.insert(location)
+    fun insert(vararg locations: Location) {
+        for (loc in locations) {
+            locationDao.insert(loc)
         }
     }
 
     @WorkerThread
-    fun delete(location: Location) {
-        GlobalScope.launch(Dispatchers.IO) {
-            locationDao.delete(location)
+    fun delete(vararg locations: Location) {
+        for (loc in locations) {
+            locationDao.delete(loc)
         }
     }
 }

@@ -1,10 +1,12 @@
 package com.rahul.weatherapp.data.repository
 
 import androidx.lifecycle.LiveData
+import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 
 interface WeatherRepository {
-    suspend fun fetchLocationWeather(cityName: String, countryCode: String): LiveData<LocationWeatherResponse>
-    suspend fun fetchLocationWeatherByID(cityID: String): LiveData<LocationWeatherResponse>
+    suspend fun fetchLocationWeather(zipCode: String, countryCode: String,
+                                     callback: ((response: LocationWeatherResponse) -> Unit))
+    suspend fun fetchLocationWeather(cityID: String, callback: ((response: BulkLocationWeatherResponse) -> Unit))
 
 }

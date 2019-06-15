@@ -2,6 +2,7 @@ package com.rahul.weatherapp.data.network
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
+import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import kotlinx.coroutines.Deferred
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -18,13 +19,13 @@ const val APP_ID = "22688e4d3dabcc703683aa5720c556f4"
 interface OpenWeatherAPIService {
     @GET(value = "weather")
     fun getLocationWeather(
-        @Query(value = "q") cityName: String
+        @Query(value = "zip") zipCode: String
     ): Deferred<LocationWeatherResponse>
 
-    @GET(value = "weather")
+    @GET(value = "group")
     fun getLocationWeatherByID(
         @Query(value = "id") cityID: String
-    ): Deferred<LocationWeatherResponse>
+    ): Deferred<BulkLocationWeatherResponse>
 
     companion object {
         operator fun invoke(
