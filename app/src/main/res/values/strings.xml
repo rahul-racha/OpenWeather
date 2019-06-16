@@ -4,4 +4,8 @@
     <string name="bTitle">weather</string>
     <string name="app_title">openweather</string>
     <string name="location_logo_desc">logo representing location\'s current weather</string>
+    <string name="empty_not_saved">Place not saved because it is empty.</string>
+    <string name="edit_place_placeholder">Search for a city</string>
+    <string name="save_button_title">Save</string>
+    <string name="cancel_button_title">Cancel</string>
 </resources>

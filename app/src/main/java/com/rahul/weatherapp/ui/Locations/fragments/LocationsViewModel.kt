@@ -17,10 +17,14 @@ import kotlinx.coroutines.launch
 
 class LocationsViewModel(application: Application) : AndroidViewModel(application) {
 
+    companion object {
+        val FIRST_LAUNCH_COMPLETED: String = "first_launch_completed"
+        val ADD_PLACE_ACTIVITY_CODE: Int = 1
+    }
+
     data class ViewData(val location: Location, val weather: LocationWeatherResponse)
 
     private val weatherRepository: WeatherRepositoryImpl
-    val FIRST_LAUNCH_COMPLETED: String = "first_launch_completed"
     private lateinit var allLocationsLiveData: LiveData<List<Location>>
     private lateinit var bulkLocationWeatherLiveData: LiveData<BulkLocationWeatherResponse>
     private var listViewData = mutableListOf<ViewData>()

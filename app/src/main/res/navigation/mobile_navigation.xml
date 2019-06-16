@@ -2,7 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools" android:id="@+id/mobile_navigation"
-            app:startDestination="@+id/locationsFragment">
-    <fragment android:id="@+id/locationsFragment" android:name="com.rahul.weatherapp.ui.Locations.fragments.LocationsFragment"
+            app:startDestination="@+id/locations_fragment">
+    <fragment android:id="@+id/locations_fragment" android:name="com.rahul.weatherapp.ui.Locations.fragments.LocationsFragment"
               android:label="locations_fragment" tools:layout="@layout/locations_fragment"/>
 </navigation>
