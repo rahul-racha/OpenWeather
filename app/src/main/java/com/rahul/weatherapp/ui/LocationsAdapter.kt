@@ -9,7 +9,8 @@ import com.rahul.weatherapp.R
 import com.rahul.weatherapp.ui.Locations.fragments.LocationsViewModel
 import kotlinx.android.synthetic.main.location_row.view.*
 
-class LocationsAdapter(val locationWeatherList : List<LocationsViewModel.ViewData>) : RecyclerView.Adapter<LocationsAdapter.LocationViewHolder>() {
+class LocationsAdapter(val locationWeatherList : List<LocationsViewModel.ViewData>) :
+    RecyclerView.Adapter<LocationsAdapter.LocationViewHolder>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LocationViewHolder {
@@ -47,7 +48,6 @@ class LocationsAdapter(val locationWeatherList : List<LocationsViewModel.ViewDat
             .load(imageURL)
             .into(holder.view.weather_logo)
     }
-
 
     class LocationViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 }

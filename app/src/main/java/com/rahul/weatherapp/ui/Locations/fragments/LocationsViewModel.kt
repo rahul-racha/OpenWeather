@@ -1,6 +1,7 @@
 package com.rahul.weatherapp.ui.Locations.fragments
 
 import android.app.Application
+import android.preference.PreferenceManager
 import android.util.Log
 import androidx.lifecycle.*
 import com.google.android.libraries.places.api.model.AddressComponents
@@ -36,20 +37,44 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                                      val country: String, val locality: String)
 
     private lateinit var transientNewPlaceData: TransientNewPlaceData
-    private val weatherRepository: WeatherRepositoryImpl
-    private lateinit var allLocationsLiveData: LiveData<List<Location>>
-    private lateinit var bulkLocationWeatherLiveData: LiveData<BulkLocationWeatherResponse>
-    private var listViewData = mutableListOf<ViewData>()
     private lateinit var savedLocations: List<Location>
-    var viewLiveData: MutableLiveData<List<ViewData>> = MutableLiveData()
+    private val weatherRepository: WeatherRepositoryImpl
+    private var listViewData = mutableListOf<ViewData>()
+    private var _viewStateLiveData: MutableLiveData<ViewState> = MutableLiveData()
+    private fun currentViewState(): ViewState = _viewStateLiveData.value!!
 
-    val getLiveData: LiveData<List<ViewData>>
-        get() = viewLiveData
+    data class ViewState(
+        val isLoading: Boolean = true,
+        val populateRecyclerViewData: Boolean = false,
+        val newViewDataPosition: Int = -1
+    )
+
+    val viewStateLiveData: LiveData<ViewState>
+        get() = _viewStateLiveData
+
+    fun getListViewData(): List<ViewData> = listViewData
+
     init {
         val locationDao = WeatherDatabase(application).locationDao()
         val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(application))
         val weatherNetworkDataSourceImpl = WeatherNetworkDataSourceImpl(apiService)
         weatherRepository = WeatherRepositoryImpl(locationDao, weatherNetworkDataSourceImpl)
+        handleDefaultPreferences(application)
+        _viewStateLiveData.postValue(ViewState())
+    }
+
+    private fun handleDefaultPreferences(application: Application) {
+        PreferenceManager.getDefaultSharedPreferences(application.applicationContext).apply {
+            if (!getBoolean(FIRST_LAUNCH_COMPLETED, false)) {
+                initLocationDatabase()
+                edit().apply {
+                    putBoolean(FIRST_LAUNCH_COMPLETED, true)
+                    apply()
+                }
+            } else {
+                loadSavedLocations()
+            }
+        }
     }
 
     fun initLocationDatabase() {
@@ -75,6 +100,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         if (place.addressComponents is AddressComponents) {
             GlobalScope.launch(Dispatchers.IO) {
                if(!(weatherRepository.isPlaceExists(placeID = place.id.toString()))) {
+                   _viewStateLiveData.postValue(currentViewState().copy(isLoading = true))
                    var postalCode: String? = null
                    var countryCode: String = ""
                    var country: String = ""
@@ -142,10 +168,9 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             val location = Location(place.id.toString(), locationWeatherResponse.id.toString(), place.locality,
                 place.stateCode, place.countryCode, place.country, place.postalCode ?: "")
             weatherRepository.insert(location)
-//            savedLocations = weatherRepository.allSavedLocations
-//            Log.e("SAVED_LOCATIONS",savedLocations.toString())
-//            loadWeatherForSavedLocations(savedLocations)
             listViewData.add(ViewData(location, locationWeatherResponse))
+            _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
+                newViewDataPosition = listViewData.size-1))
         }
     }
 
@@ -155,8 +180,12 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                  savedLocationList.forEach { location ->
                     listViewData.add(ViewData(location, bulkResponse.list!![i++]!!))
                 }
-                 viewLiveData.postValue(listViewData)
+                 _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
+                     populateRecyclerViewData = true))
              }
         Log.e("LIST_VIEW_DATA", listViewData.toString())
     }
 }
+
+//                   _viewStateLiveData.postValue(ViewState(isLoading = true, populateRecyclerViewData = false,
+//                       newViewData = false))

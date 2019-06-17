@@ -29,8 +29,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import android.preference.PreferenceManager
+import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -48,6 +50,7 @@ class LocationsFragment : Fragment() {
     private lateinit var viewModel: LocationsViewModel
     private lateinit var floatingButton: FloatingActionButton
     private lateinit var recyclerView: RecyclerView
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,6 +59,7 @@ class LocationsFragment : Fragment() {
         val rootView = inflater.inflate(R.layout.locations_fragment, container, false)
         floatingButton = rootView.fab
         recyclerView = rootView.recycler_view
+        progressBar = rootView.progress_bar
         val toolbar: Toolbar = activity!!.findViewById(R.id.toolbar)
         setToolbarTitle(toolbar)
         return rootView
@@ -64,9 +68,6 @@ class LocationsFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(LocationsViewModel::class.java)
-        // TODO: Use the ViewModel
-        handleDefaultPreferences()
-//        viewModel.loadSavedLocations()
 
         floatingButton.setOnClickListener(object: View.OnClickListener {
             override fun onClick(v: View?) {
@@ -75,9 +76,8 @@ class LocationsFragment : Fragment() {
             }
         })
 
-        viewModel.getLiveData.observe(this, Observer {
-            recyclerView.layoutManager = LinearLayoutManager(activity)
-            recyclerView.adapter = LocationsAdapter(it)
+        viewModel.viewStateLiveData.observe(viewLifecycleOwner, Observer {
+            it?.let { render(it) }
         })
 
 //        val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(context!!))
@@ -91,6 +91,34 @@ class LocationsFragment : Fragment() {
 //                Log.d("INTERNET", "No internet")
 //            }
 //        }
+    }
+
+    private fun render(viewState: LocationsViewModel.ViewState) {
+        when (viewState.isLoading) {
+            true ->  {
+                progressBar.visibility = View.VISIBLE
+            }
+            false -> {
+                progressBar.visibility = View.INVISIBLE
+            }
+        }
+
+        when (viewState.populateRecyclerViewData) {
+            true -> {
+                val decoration = DividerItemDecoration(recyclerView.context,
+                    DividerItemDecoration.HORIZONTAL)
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+                    decoration.setDrawable(activity!!.resources.getDrawable(R.drawable.divider, null))
+                }
+                recyclerView.addItemDecoration(decoration)
+                recyclerView.layoutManager = LinearLayoutManager(activity)
+                recyclerView.adapter = LocationsAdapter(viewModel.getListViewData())
+            }
+        }
+
+        if (viewState.newViewDataPosition > -1) {
+            recyclerView.adapter!!.notifyItemInserted(viewState.newViewDataPosition)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intentData: Intent?) {
@@ -119,20 +147,6 @@ class LocationsFragment : Fragment() {
             spannableContent.setSpan(ForegroundColorSpan(ContextCompat.getColor(context!!, R.color.holo_red_light)), 0, modifyPart.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
             spannableContent.setSpan(StyleSpan(Typeface.BOLD), modifyPart.length, titleString.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
             toolbar.title = spannableContent
-        }
-    }
-
-    private fun handleDefaultPreferences() {
-        PreferenceManager.getDefaultSharedPreferences(activity!!).apply {
-            if (!getBoolean(LocationsViewModel.FIRST_LAUNCH_COMPLETED, false)) {
-                viewModel.initLocationDatabase()
-                edit().apply {
-                    putBoolean(LocationsViewModel.FIRST_LAUNCH_COMPLETED, true)
-                    apply()
-                }
-            } else {
-                viewModel.loadSavedLocations()
-            }
         }
     }
 
