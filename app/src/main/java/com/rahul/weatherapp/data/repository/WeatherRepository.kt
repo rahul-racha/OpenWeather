@@ -5,8 +5,20 @@ import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWea
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 
 interface WeatherRepository {
-    suspend fun fetchLocationWeather(zipCode: String, countryCode: String,
-                                     callback: ((response: LocationWeatherResponse) -> Unit))
-    suspend fun fetchLocationWeather(cityID: String, callback: ((response: BulkLocationWeatherResponse) -> Unit))
+    suspend fun fetchLocationWeatherByZip(
+        zipCode: String,
+        countryCode: String,
+        callback: ((response: LocationWeatherResponse) -> Unit)
+    )
 
+    suspend fun fetchLocationWeatherByCity(
+        city: String,
+        countryCode: String,
+        callback: ((response: LocationWeatherResponse) -> Unit)
+    )
+
+    suspend fun fetchLocationWeatherInBulk(
+        cityIDs: String,
+        callback: ((response: BulkLocationWeatherResponse) -> Unit)
+    )
 }

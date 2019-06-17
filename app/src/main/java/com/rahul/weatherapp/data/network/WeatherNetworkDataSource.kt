@@ -9,14 +9,20 @@ interface WeatherNetworkDataSource {
     val downloadedLocationWeather:  LiveData<LocationWeatherResponse>
     val downloadedBulkLocationWeather: LiveData<BulkLocationWeatherResponse>
 
-    suspend fun fetchLocationWeather(
+    suspend fun fetchLocationWeatherByZip(
         zipCode: String,
         countryCode: String,
         callback: ((response: LocationWeatherResponse) -> Unit)
     )
 
-    suspend fun fetchLocationWeather(
-        cityID: String,
+    suspend fun fetchLocationWeatherByCity(
+        city: String,
+        countryCode: String,
+        callback: ((response: LocationWeatherResponse) -> Unit)
+    )
+
+    suspend fun fetchLocationWeatherInBulk(
+        cityIDs: String,
         callback: ((response: BulkLocationWeatherResponse) -> Unit)
     )
 }

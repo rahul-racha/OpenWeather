@@ -7,15 +7,18 @@
         android:layout_height="match_parent"
         tools:context=".ui.Locations.fragments.LocationsFragment">
 
-    <fragment android:id="@+id/autocomplete_fragment"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
-    />
-    <TextView
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/refresh_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Hello"/>
+            android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+                tools:listitem="@layout/location_row"
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"

@@ -11,6 +11,9 @@ interface LocationDao {
     @Query("SELECT * FROM ${tProp.tableName} ORDER BY ${tProp.filterASC} ASC")
     fun getAllLocations(): List<Location>
 
+    @Query("SELECT EXISTS(SELECT * FROM ${tProp.tableName} WHERE ${tProp.placeID} = :placeID)")
+    fun isPlaceExists(placeID: String): Boolean
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insert(vararg locations: Location)
 

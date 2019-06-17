@@ -8,6 +8,7 @@ import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWea
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 import com.rahul.weatherapp.internal.NoConnectivityException
 
+// TODO: Show user exception messages
 class WeatherNetworkDataSourceImpl(
     private val openWeatherAPIService: OpenWeatherAPIService
 ) : WeatherNetworkDataSource {
@@ -21,29 +22,48 @@ class WeatherNetworkDataSourceImpl(
     override val downloadedBulkLocationWeather: LiveData<BulkLocationWeatherResponse>
         get() = _bulkLocationWeather
 
-    override suspend fun fetchLocationWeather(zipCode: String, countryCode: String,
+    override suspend fun fetchLocationWeatherByZip(zipCode: String, countryCode: String,
                                               callback: ((response: LocationWeatherResponse) -> Unit)) {
         try {
             val fetchedLocationWeather = openWeatherAPIService
-                .getLocationWeather("$zipCode,$countryCode")
+                .getLocationWeatherByZip("$zipCode,$countryCode")
                 .await()
-//            _locationWeather.postValue(fetchedLocationWeather)
             callback(fetchedLocationWeather)
         } catch (e: NoConnectivityException) {
             Log.e("Connectivity", "No internet connection", e)
+        } catch (e: Exception) {
+            Log.e("EXCEPTION", e.localizedMessage)
         }
     }
 
-    override suspend fun fetchLocationWeather(cityID: String,
+    override suspend fun fetchLocationWeatherByCity(
+        city: String,
+        countryCode: String,
+        callback: (response: LocationWeatherResponse) -> Unit
+    ) {
+        try {
+            val fetchedLocationWeather = openWeatherAPIService
+                .getLocationWeatherByCity("$city,$countryCode")
+                .await()
+            callback(fetchedLocationWeather)
+        } catch (e: NoConnectivityException) {
+            Log.e("Connectivity", "No internet connection", e)
+        } catch (e: Exception) {
+            Log.e("EXCEPTION", e.localizedMessage)
+        }
+    }
+
+    override suspend fun fetchLocationWeatherInBulk(cityIDs: String,
                                               callback: ((response: BulkLocationWeatherResponse) -> Unit)) {
         try {
             val fetchedBulkLocationWeather = openWeatherAPIService
-                .getLocationWeatherByID(cityID)
+                .getLocationWeatherInBulk(cityIDs)
                 .await()
-//            _bulkLocationWeather.postValue(fetchedBulkLocationWeather)
             callback(fetchedBulkLocationWeather)
         } catch (e: NoConnectivityException) {
             Log.e("Connectivity", "No internet connection", e)
+        } catch (e: Exception) {
+            Log.e("EXCEPTION", e.localizedMessage)
         }
     }
 

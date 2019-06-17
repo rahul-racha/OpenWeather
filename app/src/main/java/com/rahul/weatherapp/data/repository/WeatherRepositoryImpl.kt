@@ -32,17 +32,25 @@ class WeatherRepositoryImpl(
         }
     }
 
-    override suspend fun fetchLocationWeather(
+    override suspend fun fetchLocationWeatherByZip(
         zipCode: String,
         countryCode: String,
         callback: ((response: LocationWeatherResponse) -> Unit)
     ) {
-        weatherNetworkDataSource.fetchLocationWeather(zipCode, countryCode, callback)
+        weatherNetworkDataSource.fetchLocationWeatherByZip(zipCode, countryCode, callback)
     }
 
-    override suspend fun fetchLocationWeather(cityID: String,
+    override suspend fun fetchLocationWeatherByCity(
+        city: String,
+        countryCode: String,
+        callback: (response: LocationWeatherResponse) -> Unit
+    ) {
+        weatherNetworkDataSource.fetchLocationWeatherByCity(city,countryCode, callback)
+    }
+
+    override suspend fun fetchLocationWeatherInBulk(cityIDs: String,
                                               callback: ((response: BulkLocationWeatherResponse) -> Unit)) {
-        weatherNetworkDataSource.fetchLocationWeather(cityID,callback)
+        weatherNetworkDataSource.fetchLocationWeatherInBulk(cityIDs,callback)
     }
 
     @WorkerThread
@@ -57,5 +65,10 @@ class WeatherRepositoryImpl(
         for (loc in locations) {
             locationDao.delete(loc)
         }
+    }
+
+    @WorkerThread
+    fun isPlaceExists(placeID: String): Boolean {
+        return locationDao.isPlaceExists(placeID)
     }
 }

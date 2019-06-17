@@ -24,6 +24,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import com.google.android.libraries.places.api.model.TypeFilter
+import java.lang.Exception
 
 
 class AddPlaceActivity : AppCompatActivity() {
@@ -95,21 +96,22 @@ class AddPlaceActivity : AppCompatActivity() {
     private fun configurePlaceListener() {
         autocompleteFragment.setPlaceFields(mutableListOf(Place.Field.ID, Place.Field.NAME,
             Place.Field.ADDRESS_COMPONENTS, Place.Field.PHOTO_METADATAS))
-        autocompleteFragment.setTypeFilter(TypeFilter.CITIES)
+        autocompleteFragment.setTypeFilter(TypeFilter.REGIONS)
     }
 
     private fun addPlaceSelectionListener() {
         autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
                 selectedPlace = place
-                Log.i("LISTENER_RESULT", "Place: " + place.name + ", " + place.addressComponents + "," +
-                place.photoMetadatas)
+                Log.i(
+                    "LISTENER_RESULT", "Place: " + place.name + ", " + place.addressComponents + "," +
+                            place.photoMetadatas
+                )
             }
 
             override fun onError(status: Status) {
                 Log.i("LISTENER_FAIL", "An error occurred: $status")
             }
         })
-
     }
 }

@@ -20,6 +20,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.rahul.weatherapp.R
 import androidx.appcompat.widget.Toolbar
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.rahul.weatherapp.data.network.ConnectivityInterceptor
 import com.rahul.weatherapp.data.network.ConnectivityInterceptorImpl
 import com.rahul.weatherapp.data.network.OpenWeatherAPIService
@@ -29,9 +30,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import android.preference.PreferenceManager
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.rahul.weatherapp.ui.AddPlaceActivity
+import com.rahul.weatherapp.ui.LocationsAdapter
 import kotlinx.android.synthetic.main.locations_fragment.view.*
 
 
@@ -43,6 +47,7 @@ class LocationsFragment : Fragment() {
 
     private lateinit var viewModel: LocationsViewModel
     private lateinit var floatingButton: FloatingActionButton
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,6 +55,7 @@ class LocationsFragment : Fragment() {
     ): View? {
         val rootView = inflater.inflate(R.layout.locations_fragment, container, false)
         floatingButton = rootView.fab
+        recyclerView = rootView.recycler_view
         val toolbar: Toolbar = activity!!.findViewById(R.id.toolbar)
         setToolbarTitle(toolbar)
         return rootView
@@ -60,13 +66,18 @@ class LocationsFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(LocationsViewModel::class.java)
         // TODO: Use the ViewModel
         handleDefaultPreferences()
-        viewModel.loadSavedLocations()
+//        viewModel.loadSavedLocations()
 
         floatingButton.setOnClickListener(object: View.OnClickListener {
             override fun onClick(v: View?) {
                 val intent = Intent(activity, AddPlaceActivity::class.java)
                 startActivityForResult(intent, LocationsViewModel.ADD_PLACE_ACTIVITY_CODE)
             }
+        })
+
+        viewModel.getLiveData.observe(this, Observer {
+            recyclerView.layoutManager = LinearLayoutManager(activity)
+            recyclerView.adapter = LocationsAdapter(it)
         })
 
 //        val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(context!!))
@@ -94,10 +105,9 @@ class LocationsFragment : Fragment() {
                 ).show()
                 return
             }
-//          intentData?.let { data ->
             val selectedPlace = intentData!!.extras.getParcelable<Place>("selected_place_parcelable")
             Log.e("Place_RESULT", selectedPlace.toString())
-//          }
+            viewModel.addNewPlace(selectedPlace)
         }
     }
 
@@ -120,6 +130,8 @@ class LocationsFragment : Fragment() {
                     putBoolean(LocationsViewModel.FIRST_LAUNCH_COMPLETED, true)
                     apply()
                 }
+            } else {
+                viewModel.loadSavedLocations()
             }
         }
     }
