@@ -33,15 +33,18 @@ import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.rahul.weatherapp.ui.AddPlaceActivity
 import com.rahul.weatherapp.ui.LocationsAdapter
+import com.rahul.weatherapp.ui.RecyclerItemTouchHelper
+import com.rahul.weatherapp.ui.RecyclerItemTouchListener
 import kotlinx.android.synthetic.main.locations_fragment.view.*
 
 
-class LocationsFragment : Fragment() {
+class LocationsFragment : Fragment(), RecyclerItemTouchListener {
 
     companion object {
         fun newInstance() = LocationsFragment()
@@ -105,20 +108,27 @@ class LocationsFragment : Fragment() {
 
         when (viewState.populateRecyclerViewData) {
             true -> {
-                val decoration = DividerItemDecoration(recyclerView.context,
-                    DividerItemDecoration.HORIZONTAL)
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                    decoration.setDrawable(activity!!.resources.getDrawable(R.drawable.divider, null))
-                }
-                recyclerView.addItemDecoration(decoration)
-                recyclerView.layoutManager = LinearLayoutManager(activity)
-                recyclerView.adapter = LocationsAdapter(viewModel.getListViewData())
+                setupRecyclerView()
             }
         }
 
         if (viewState.newViewDataPosition > -1) {
             recyclerView.adapter!!.notifyItemInserted(viewState.newViewDataPosition)
         }
+    }
+
+    private fun setupRecyclerView() {
+//        val decoration = DividerItemDecoration(recyclerView.context,
+//                    DividerItemDecoration.HORIZONTAL)
+//                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+//                    decoration.setDrawable(activity!!.resources.getDrawable(R.drawable.divider, null))
+//                }
+//                recyclerView.addItemDecoration(decoration)
+        recyclerView.layoutManager = LinearLayoutManager(activity)
+        recyclerView.adapter = LocationsAdapter(viewModel.getListViewData())
+        val itemTouchHelperCallback = ItemTouchHelper(RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT,
+            this))
+        itemTouchHelperCallback.attachToRecyclerView(recyclerView)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intentData: Intent?) {
@@ -147,6 +157,19 @@ class LocationsFragment : Fragment() {
             spannableContent.setSpan(ForegroundColorSpan(ContextCompat.getColor(context!!, R.color.holo_red_light)), 0, modifyPart.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
             spannableContent.setSpan(StyleSpan(Typeface.BOLD), modifyPart.length, titleString.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
             toolbar.title = spannableContent
+        }
+    }
+
+    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int, position: Int) {
+        if (viewHolder is LocationsAdapter.LocationViewHolder) {
+            val viewData = viewModel.getListViewData()
+            val locality: String = viewData[viewHolder.adapterPosition].location.cityName
+            val deletedItem = viewData[viewHolder.adapterPosition]
+            val deletedIndex = viewHolder.adapterPosition
+            viewModel.removeItemFromViewData(deletedIndex)
+            recyclerView.adapter!!.notifyItemRemoved(deletedIndex)
+
+
         }
     }
 

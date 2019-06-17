@@ -53,6 +53,9 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         get() = _viewStateLiveData
 
     fun getListViewData(): List<ViewData> = listViewData
+    fun removeItemFromViewData(position: Int) {
+        listViewData.removeAt(position)
+    }
 
     init {
         val locationDao = WeatherDatabase(application).locationDao()

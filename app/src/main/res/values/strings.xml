@@ -8,4 +8,6 @@
     <string name="edit_place_placeholder">Search for a city</string>
     <string name="save_button_title">Save</string>
     <string name="cancel_button_title">Cancel</string>
+    <string name="delete_text_view">Delete</string>
+    <string name="delete_icon_desc">swipe to delete</string>
 </resources>
