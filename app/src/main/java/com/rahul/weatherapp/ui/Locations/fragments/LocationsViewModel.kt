@@ -42,6 +42,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     private var listViewData = mutableListOf<ViewData>()
     private var _viewStateLiveData: MutableLiveData<ViewState> = MutableLiveData()
     private fun currentViewState(): ViewState = _viewStateLiveData.value!!
+    private var deletedLocationMap: HashMap<String, ViewData> = hashMapOf()
 
     data class ViewState(
         val isLoading: Boolean = true,
@@ -55,6 +56,27 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     fun getListViewData(): List<ViewData> = listViewData
     fun removeItemFromViewData(position: Int) {
         listViewData.removeAt(position)
+    }
+    fun addItemToViewData(position: Int, item: ViewData) {
+        listViewData.add(position, item)
+    }
+
+    fun clearLocationsFromMap() {
+        deletedLocationMap.clear()
+    }
+
+    fun addDeletedLocationToMap(viewData: ViewData) {
+        deletedLocationMap[viewData.location.placeID] = viewData
+        GlobalScope.launch(Dispatchers.IO) {
+            weatherRepository.delete(viewData.location)
+        }
+    }
+
+    fun restoreLocation(viewData: ViewData) {
+        deletedLocationMap.clear()
+        GlobalScope.launch(Dispatchers.IO) {
+            weatherRepository.insert(viewData.location)
+        }
     }
 
     init {

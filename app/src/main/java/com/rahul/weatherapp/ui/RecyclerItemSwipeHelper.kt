@@ -1,15 +1,19 @@
 package com.rahul.weatherapp.ui
 
 import android.graphics.Canvas
+import android.view.MotionEvent
 import android.view.View
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.location_row.view.*
 
-class RecyclerItemTouchHelper(dragDirs: Int, swipeDirs: Int, listener: RecyclerItemTouchListener) :
+
+
+class RecyclerItemSwipeHelper(dragDirs: Int, swipeDirs: Int, listener: RecyclerItemTouchListener) :
     ItemTouchHelper.SimpleCallback(dragDirs, swipeDirs) {
 
     private var listener: RecyclerItemTouchListener
+    var swipedViewHolder: RecyclerView.ViewHolder? = null
 
     init {
         this.listener = listener
@@ -24,7 +28,7 @@ class RecyclerItemTouchHelper(dragDirs: Int, swipeDirs: Int, listener: RecyclerI
         viewHolder: RecyclerView.ViewHolder,
         target: RecyclerView.ViewHolder
     ): Boolean {
-        return true
+        return false
     }
 
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
@@ -44,6 +48,7 @@ class RecyclerItemTouchHelper(dragDirs: Int, swipeDirs: Int, listener: RecyclerI
         val foregroundView: View = (viewHolder as LocationsAdapter.LocationViewHolder).view.view_foreground
         ItemTouchHelper.Callback.getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY, actionState,
             isCurrentlyActive)
+
     }
 
     override fun onChildDrawOver(
@@ -67,7 +72,6 @@ class RecyclerItemTouchHelper(dragDirs: Int, swipeDirs: Int, listener: RecyclerI
         }
     }
 
-//    override fun convertToAbsoluteDirection(flags: Int, layoutDirection: Int): Int {
-//        return super.convertToAbsoluteDirection(flags, layoutDirection)
-//    }
+
+
 }

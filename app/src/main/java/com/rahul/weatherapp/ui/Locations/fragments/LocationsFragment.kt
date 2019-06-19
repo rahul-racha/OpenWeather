@@ -21,26 +21,15 @@ import android.widget.Toast
 import com.rahul.weatherapp.R
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.rahul.weatherapp.data.network.ConnectivityInterceptor
-import com.rahul.weatherapp.data.network.ConnectivityInterceptorImpl
-import com.rahul.weatherapp.data.network.OpenWeatherAPIService
-import com.rahul.weatherapp.internal.NoConnectivityException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import android.preference.PreferenceManager
 import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.rahul.weatherapp.ui.AddPlaceActivity
-import com.rahul.weatherapp.ui.LocationsAdapter
-import com.rahul.weatherapp.ui.RecyclerItemTouchHelper
-import com.rahul.weatherapp.ui.RecyclerItemTouchListener
+import com.google.android.material.snackbar.Snackbar
+import com.rahul.weatherapp.ui.*
 import kotlinx.android.synthetic.main.locations_fragment.view.*
 
 
@@ -54,12 +43,15 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
     private lateinit var floatingButton: FloatingActionButton
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
+    private lateinit var recyclerItemTouchHelper: RecyclerItemSwipeHelper
+    private lateinit var itemTouchHelperCallback: ItemTouchHelper
+    private lateinit var rootView: View
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val rootView = inflater.inflate(R.layout.locations_fragment, container, false)
+        rootView = inflater.inflate(R.layout.locations_fragment, container, false)
         floatingButton = rootView.fab
         recyclerView = rootView.recycler_view
         progressBar = rootView.progress_bar
@@ -118,16 +110,10 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
     }
 
     private fun setupRecyclerView() {
-//        val decoration = DividerItemDecoration(recyclerView.context,
-//                    DividerItemDecoration.HORIZONTAL)
-//                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-//                    decoration.setDrawable(activity!!.resources.getDrawable(R.drawable.divider, null))
-//                }
-//                recyclerView.addItemDecoration(decoration)
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = LocationsAdapter(viewModel.getListViewData())
-        val itemTouchHelperCallback = ItemTouchHelper(RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT,
-            this))
+        recyclerItemTouchHelper = RecyclerItemSwipeHelper(0,ItemTouchHelper.LEFT,this)
+        itemTouchHelperCallback = ItemTouchHelper(recyclerItemTouchHelper)
         itemTouchHelperCallback.attachToRecyclerView(recyclerView)
     }
 
@@ -161,16 +147,48 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int, position: Int) {
+
         if (viewHolder is LocationsAdapter.LocationViewHolder) {
             val viewData = viewModel.getListViewData()
-            val locality: String = viewData[viewHolder.adapterPosition].location.cityName
-            val deletedItem = viewData[viewHolder.adapterPosition]
-            val deletedIndex = viewHolder.adapterPosition
-            viewModel.removeItemFromViewData(deletedIndex)
-            recyclerView.adapter!!.notifyItemRemoved(deletedIndex)
+            val locality: String = viewData[position].location.cityName
+            val deletedItem = viewData[position]
+            viewModel.removeItemFromViewData(position)
+            viewModel.addDeletedLocationToMap(deletedItem)
+            recyclerView.adapter!!.notifyItemRemoved(position)
 
+            val snackbar = Snackbar.make(rootView, locality + " removed from locations", Snackbar.LENGTH_LONG)
+            snackbar.setDuration(6000)
+            snackbar.setAction("UNDO", object : View.OnClickListener {
+                override fun onClick(v: View?) {
+                    viewModel.addItemToViewData(position, deletedItem)
+                    viewModel.restoreLocation(deletedItem)
+                    Log.e("UNDO_ITEM",deletedItem.location.placeID.toString())
+                    recyclerView.adapter!!.notifyItemInserted(position)
+                }
+            })
 
+            snackbar.addCallback(object : Snackbar.Callback() {
+                override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                    Log.e("SNACKBAR_DISMISSED", "Dismissed at postion: ${position}")
+                    viewModel.clearLocationsFromMap()
+                }
+            })
+
+            snackbar.setActionTextColor(Color.YELLOW)
+            snackbar.show()
         }
+    }
+
+    override fun onClicked(view: View, position: Int) {
+        //Mark: Can design a custom swipe feature on recycler view registering click events. Painful :(
+    }
+
+    override fun onDeleteClicked(position: Int) {
+        Toast.makeText(context, "Delete clicked on ${position}", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onEditClicked(position: Int) {
+        Toast.makeText(context, "Edit clicked on ${position}", Toast.LENGTH_LONG).show()
     }
 
 }
