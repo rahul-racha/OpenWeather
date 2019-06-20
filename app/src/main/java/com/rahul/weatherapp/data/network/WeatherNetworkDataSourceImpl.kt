@@ -59,6 +59,7 @@ class WeatherNetworkDataSourceImpl(
             val fetchedBulkLocationWeather = openWeatherAPIService
                 .getLocationWeatherInBulk(cityIDs)
                 .await()
+            Log.e("BULK_WEATHER", fetchedBulkLocationWeather.toString())
             callback(fetchedBulkLocationWeather)
         } catch (e: NoConnectivityException) {
             Log.e("Connectivity", "No internet connection", e)

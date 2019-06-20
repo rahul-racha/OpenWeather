@@ -17,15 +17,18 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
 import com.rahul.weatherapp.R
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -43,10 +46,12 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
     private lateinit var viewModel: LocationsViewModel
     private lateinit var floatingButton: FloatingActionButton
     private lateinit var recyclerView: RecyclerView
-    private lateinit var progressBar: ProgressBar
     private lateinit var recyclerItemTouchHelper: RecyclerItemSwipeHelper
     private lateinit var itemTouchHelperCallback: ItemTouchHelper
     private lateinit var rootView: View
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var placeholderImageView: ImageView
+    private lateinit var placeholderTextView: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,7 +60,9 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
         rootView = inflater.inflate(R.layout.locations_fragment, container, false)
         floatingButton = rootView.fab
         recyclerView = rootView.recycler_view
-        progressBar = rootView.progress_bar
+        swipeRefreshLayout = rootView.refresh_layout
+        placeholderImageView = rootView.empty_locations_image_view
+        placeholderTextView = rootView.empty_locations_text_view
         val toolbar: Toolbar = activity!!.findViewById(R.id.toolbar)
         setToolbarTitle(toolbar)
         return rootView
@@ -64,15 +71,7 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(LocationsViewModel::class.java)
-
-        floatingButton.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(v: View?) {
-                val intent = Intent(activity, AddPlaceActivity::class.java)
-                intent.putExtra(R.string.hint_text_key.toString(), "Search for locations")
-                startActivityForResult(intent, LocationsViewModel.ADD_PLACE_ACTIVITY_CODE)
-            }
-        })
-
+        setListeners()
         setupRecyclerView()
 
         viewModel.viewStateLiveData.observe(viewLifecycleOwner, Observer {
@@ -92,13 +91,55 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
 //        }
     }
 
+    private fun setListeners() {
+        floatingButton.setOnClickListener(object: View.OnClickListener {
+            override fun onClick(v: View?) {
+                val intent = Intent(activity, AddPlaceActivity::class.java)
+                intent.putExtra(R.string.hint_text_key.toString(), "Search for locations")
+                startActivityForResult(intent, LocationsViewModel.ADD_PLACE_ACTIVITY_CODE)
+            }
+        })
+
+        swipeRefreshLayout.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener {
+            override fun onRefresh() {
+                viewModel.clearListViewData()
+                viewModel.loadSavedLocations()
+            }
+        })
+    }
+
+    private fun setupRecyclerView() {
+        recyclerView.layoutManager = LinearLayoutManager(activity)
+        recyclerView.adapter = LocationsAdapter(viewModel.getListViewData(), this)
+        recyclerItemTouchHelper = RecyclerItemSwipeHelper(0,ItemTouchHelper.LEFT,this)
+        itemTouchHelperCallback = ItemTouchHelper(recyclerItemTouchHelper)
+        itemTouchHelperCallback.attachToRecyclerView(recyclerView)
+    }
+
     private fun render(viewState: LocationsViewModel.ViewState) {
+
+        if (viewModel.getListViewData().isEmpty()) {
+            recyclerView.visibility = View.INVISIBLE
+            placeholderImageView.visibility = View.VISIBLE
+            placeholderTextView.visibility = View.VISIBLE
+
+        } else {
+            recyclerView.visibility = View.VISIBLE
+            placeholderImageView.visibility = View.INVISIBLE
+            placeholderTextView.visibility = View.INVISIBLE
+        }
+
         when (viewState.isLoading) {
             true ->  {
-                progressBar.visibility = View.VISIBLE
+                if (!swipeRefreshLayout.isRefreshing) {
+                    (activity as MainActivity).setProgressBar(View.VISIBLE)
+                }
             }
             false -> {
-                progressBar.visibility = View.INVISIBLE
+                if (swipeRefreshLayout.isRefreshing) {
+                    swipeRefreshLayout.isRefreshing = false
+                }
+                (activity as MainActivity).setProgressBar(View.INVISIBLE)
             }
         }
 
@@ -117,14 +158,6 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
         }
     }
 
-    private fun setupRecyclerView() {
-        recyclerView.layoutManager = LinearLayoutManager(activity)
-        recyclerView.adapter = LocationsAdapter(viewModel.getListViewData(), this)
-        recyclerItemTouchHelper = RecyclerItemSwipeHelper(0,ItemTouchHelper.LEFT,this)
-        itemTouchHelperCallback = ItemTouchHelper(recyclerItemTouchHelper)
-        itemTouchHelperCallback.attachToRecyclerView(recyclerView)
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, intentData: Intent?) {
         super.onActivityResult(requestCode, resultCode, intentData)
         Log.e("RESULT_CODE_ADD_PLACE", resultCode.toString())
@@ -138,19 +171,22 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
                 ).show()
                 return
             }
-            if (requestCode == LocationsViewModel.ADD_PLACE_ACTIVITY_CODE) {
-                val selectedPlace = intentData!!.extras.getParcelable<Place>("selected_place_parcelable")
-                Log.e("Place_RESULT", selectedPlace.toString())
-                viewModel.loadNewPlace(selectedPlace)
-                return
+            val selectedPlace = intentData!!.extras.getParcelable<Place>("selected_place_parcelable")
+            Log.e("PLACE_RESULT", selectedPlace.toString())
+            if (selectedPlace != null) {
+                if (requestCode == LocationsViewModel.ADD_PLACE_ACTIVITY_CODE) {
+                    viewModel.loadNewPlace(selectedPlace!!)
+                    return
+                }
+                if (requestCode == LocationsViewModel.EDIT_PLACE_ACTIVITY_CODE) {
+                    Log.e("ACTIVTY_RESULT_POSITION", R.string.edit_place_key.toString())
+                    viewModel.replaceItem(intentData.extras.getInt(R.string.edit_place_key.toString()), selectedPlace!!)
+                    return
+                }
             }
-            if (requestCode == LocationsViewModel.EDIT_PLACE_ACTIVITY_CODE) {
-                val selectedPlace = intentData!!.extras.getParcelable<Place>("selected_place_parcelable")
-                Log.e("EDIT_RESULT", selectedPlace.toString())
-                Log.e("ACTIVTY_RESULT_POSITION", R.string.edit_place_key.toString())
-                viewModel.replaceItem(intentData!!.extras.getInt(R.string.edit_place_key.toString()), selectedPlace)
-                return
-            }
+            //Throw Alert Box
+            Toast.makeText(context, R.string.place_not_saved, Toast.LENGTH_LONG).show()
+            return
         }
     }
 
@@ -179,8 +215,7 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
             snackbar.setDuration(6000)
             snackbar.setAction("UNDO", object : View.OnClickListener {
                 override fun onClick(v: View?) {
-                    viewModel.addItemToViewData(position, deletedItem)
-                    viewModel.restoreLocation(deletedItem)
+                    viewModel.restoreLocation(position, deletedItem)
                     Log.e("UNDO_ITEM",deletedItem.location.placeID.toString())
                     recyclerView.adapter!!.notifyItemInserted(position)
                 }

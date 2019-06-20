@@ -13,4 +13,7 @@
     <string name="edit_icon_desc">swipe to edit</string>
     <string name="edit_place_key">index_to_edit</string>
     <string name="hint_text_key">hint_text</string>
+    <string name="no_locations_image">No locations on display</string>
+    <string name="no_locations_text">Add a location :)</string>
+    <string name="place_not_saved">Place not saved. Please try again</string>
 </resources>

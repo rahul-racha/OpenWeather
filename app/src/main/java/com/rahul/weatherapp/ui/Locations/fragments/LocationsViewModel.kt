@@ -65,11 +65,21 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun getListViewData(): List<ViewData> = listViewData
+
     fun removeItemFromViewData(position: Int) {
         listViewData.removeAt(position)
+        if (listViewData.isEmpty()) {
+            _viewStateLiveData.value = ViewState(isLoading = false, populateRecyclerViewData = false,
+                newViewDataPosition = -1, updateViewDataAtPosition = -1)
+        }
     }
+
     fun addItemToViewData(position: Int, item: ViewData) {
         listViewData.add(position, item)
+    }
+
+    fun clearListViewData() {
+        listViewData.clear()
     }
 
     fun clearLocationsFromMap() {
@@ -83,10 +93,15 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun restoreLocation(viewData: ViewData) {
+    fun restoreLocation(position: Int, viewData: ViewData) {
+        listViewData.add(position, viewData)
         deletedLocationMap.clear()
         GlobalScope.launch(Dispatchers.IO) {
             weatherRepository.insert(viewData.location)
+            if (!listViewData.isEmpty()) {
+                _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = false,
+                    newViewDataPosition = -1, updateViewDataAtPosition = -1))
+            }
         }
     }
 
@@ -234,10 +249,19 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     private fun createListViewData(savedLocationList: List<Location>, bulkResponse: BulkLocationWeatherResponse) {
-        if (savedLocationList.size == bulkResponse.cnt) {
-            var i = 0
-            savedLocationList.forEach { location ->
-                listViewData.add(ViewData(location, bulkResponse.list!![i++]!!))
+        // Mark: Open Weather API not giving all results for group city IDS
+        if (bulkResponse.cnt != null && bulkResponse.cnt!! > 0) {
+            val savedLocListSize = savedLocationList.size
+            val savedLocIndexSize = savedLocListSize - 1
+            val weatherList = bulkResponse.list!!
+            val bulkIndexSize = weatherList!!.size - 1
+            for (i in 0..savedLocIndexSize) {
+                for (j in 0..bulkIndexSize) {
+                    if (savedLocationList[i].cityID == weatherList[j]!!.id!!.toString()) {
+                        listViewData.add(ViewData(savedLocationList[i], weatherList[j]!!))
+                        break
+                    }
+                }
             }
         }
         Log.e("LIST_VIEW_DATA", listViewData.toString())

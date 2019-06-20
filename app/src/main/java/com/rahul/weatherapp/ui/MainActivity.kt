@@ -9,10 +9,12 @@ import androidx.navigation.Navigation
 import androidx.navigation.ui.NavigationUI
 import kotlinx.android.synthetic.main.location_row.view.*
 import android.content.Intent
+import android.transition.Visibility
 import android.util.Log
 import androidx.fragment.app.Fragment
 import com.rahul.weatherapp.ui.Locations.fragments.LocationsFragment
 import android.view.View
+import android.widget.ProgressBar
 import androidx.appcompat.widget.Toolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
@@ -21,10 +23,12 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
     private lateinit var locationsListView: ListView
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        progressBar = findViewById(R.id.progress_bar_main)
         setSupportActionBar(findViewById(R.id.toolbar))
         setViewElements()
         setNavController()
@@ -47,6 +51,10 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Log.e("MAIN_ACT_CODE_ADD_PLACE", resultCode.toString())
+    }
+
+    fun setProgressBar(visibility: Int) {
+        progressBar.visibility = visibility
     }
 
 
