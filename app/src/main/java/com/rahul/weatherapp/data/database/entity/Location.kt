@@ -1,8 +1,10 @@
 package com.rahul.weatherapp.data.database.entity
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.ColumnInfo
 import androidx.room.PrimaryKey
+import kotlinx.android.parcel.Parcelize
 
 object TableProperties {
     const val tableName: String = "location"
@@ -15,6 +17,7 @@ object TableProperties {
     const val zipCode: String = "zip_code"
 }
 
+@Parcelize
 @Entity(tableName = TableProperties.tableName) //primaryKeys = arrayOf("city_name", "country_code", "zip_code")
 data class Location (
     @ColumnInfo(name = "place_id") var placeID: String,
@@ -24,7 +27,7 @@ data class Location (
     @ColumnInfo(name = "country_code") var countryCode: String,
     @ColumnInfo(name = "country_name") var countryName: String,
     @ColumnInfo(name = "zip_code") var zipCode: String
-) {
+): Parcelable {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0
 }

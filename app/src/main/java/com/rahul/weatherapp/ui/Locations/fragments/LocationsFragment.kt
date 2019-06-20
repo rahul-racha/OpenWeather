@@ -26,6 +26,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -77,18 +78,6 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
         viewModel.viewStateLiveData.observe(viewLifecycleOwner, Observer {
             it?.let { render(it) }
         })
-
-//        val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(context!!))
-//
-//        GlobalScope.launch(Dispatchers.Main) {
-//            try {
-//                val rep = apiService.getLocationWeather("Wexford, us").await()
-//                Log.d("Response", rep.weather.toString())
-//            } catch (e: NoConnectivityException) {
-//                Toast.makeText(context, "No internet in coroutine", Toast.LENGTH_SHORT).show()
-//                Log.d("INTERNET", "No internet")
-//            }
-//        }
     }
 
     private fun setListeners() {
@@ -155,6 +144,17 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
 
         if (viewState.updateViewDataAtPosition > -1) {
             recyclerView.adapter!!.notifyItemChanged(viewState.updateViewDataAtPosition)
+        }
+
+        if (viewState.forecastData != null) {
+            val viewData = viewModel.getListViewData()[viewState.forecastData.position]
+            val forecastAction = LocationsFragmentDirections.forecastAction(viewState.forecastData.forcastResponse,
+                viewData)
+            val navController =  (activity!! as MainActivity).navController
+            viewModel.resetForecastState()
+            if (navController.currentDestination!!.id == R.id.locations_fragment) {
+                navController.navigate(forecastAction)
+            }
         }
     }
 
@@ -236,6 +236,7 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
     override fun onClicked(viewHolder: RecyclerView.ViewHolder, position: Int) {
         if (viewHolder is LocationsAdapter.LocationViewHolder) {
             Toast.makeText(context, "Touched", Toast.LENGTH_SHORT).show()
+            viewModel.fetchForecastForLocation(position)
         }
     }
 

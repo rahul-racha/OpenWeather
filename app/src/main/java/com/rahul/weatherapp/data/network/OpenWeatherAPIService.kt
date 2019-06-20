@@ -2,6 +2,7 @@ package com.rahul.weatherapp.data.network
 
 import android.util.Log
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
+import com.rahul.weatherapp.data.network.LocationForecastResponse.LocationForecastResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import kotlinx.coroutines.Deferred
@@ -35,6 +36,11 @@ interface OpenWeatherAPIService {
         @Query(value = "id") cityIDs: String,
         @Query(value = "units") units: String = "imperial"
     ): Deferred<BulkLocationWeatherResponse>
+
+    @GET(value = "forecast")
+    fun getForecast(
+        @Query(value = "id") cityID: String
+    ): Deferred<LocationForecastResponse>
 
     companion object {
         operator fun invoke(

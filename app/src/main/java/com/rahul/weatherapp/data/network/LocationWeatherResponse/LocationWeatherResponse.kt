@@ -1,6 +1,9 @@
 package com.rahul.weatherapp.data.network.LocationWeatherResponse
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 data class LocationWeatherResponse(
     val base: String?,
     val clouds: Clouds?,
@@ -15,4 +18,4 @@ data class LocationWeatherResponse(
     val visibility: Int?,
     val weather: List<Weather?>?,
     val wind: Wind?
-)
+): Parcelable

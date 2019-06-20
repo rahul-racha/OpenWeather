@@ -21,7 +21,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var navController: NavController
+    lateinit var navController: NavController
     private lateinit var locationsListView: ListView
     private lateinit var progressBar: ProgressBar
 
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 //        locationsListView.adapter = LocationsAdapter(context = this)
     }
 
-    private fun setNavController() {
+     private fun setNavController() {
         navController = Navigation.findNavController(this, R.id.nav_host_fragment)
         NavigationUI.setupActionBarWithNavController(this, navController)
     }

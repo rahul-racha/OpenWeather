@@ -1,4 +1,4 @@
-package com.rahul.weatherapp.data.network.LocationWeatherResponse
+package com.rahul.weatherapp.data.network.LocationForecastResponse
 
 
 import android.os.Parcelable
@@ -7,9 +7,15 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class Main(
+    @SerializedName("grnd_level")
+    val grndLevel: Double?,
     val humidity: Int?,
-    val pressure: Int?,
+    val pressure: Double?,
+    @SerializedName("sea_level")
+    val seaLevel: Double?,
     val temp: Double?,
+    @SerializedName("temp_kf")
+    val tempKf: Double?,
     @SerializedName("temp_max")
     val tempMax: Double?,
     @SerializedName("temp_min")

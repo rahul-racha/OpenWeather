@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.LocationForecast.ForecastFragment">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/close_forecast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:src="@drawable/ic_add_black_24dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="38dp"
+            android:elevation="5dp"
+            app:backgroundTint="@android:color/holo_red_light"
+            app:rippleColor="@color/colorAccent"
+    />
+
+</FrameLayout>

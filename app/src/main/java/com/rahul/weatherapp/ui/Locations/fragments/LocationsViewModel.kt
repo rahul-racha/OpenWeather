@@ -1,6 +1,7 @@
 package com.rahul.weatherapp.ui.Locations.fragments
 
 import android.app.Application
+import android.os.Parcelable
 import android.preference.PreferenceManager
 import android.util.Log
 import androidx.lifecycle.*
@@ -9,11 +10,13 @@ import com.google.android.libraries.places.api.model.Place
 import com.rahul.weatherapp.data.database.entity.Location
 import com.rahul.weatherapp.data.database.WeatherDatabase
 import com.rahul.weatherapp.data.network.ConnectivityInterceptorImpl
+import com.rahul.weatherapp.data.network.LocationForecastResponse.LocationForecastResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 import com.rahul.weatherapp.data.network.OpenWeatherAPIService
 import com.rahul.weatherapp.data.network.WeatherNetworkDataSourceImpl
 import com.rahul.weatherapp.data.repository.WeatherRepositoryImpl
+import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -33,9 +36,11 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         postalCode("postal_code")
     }
 
-    data class ViewData(var location: Location, var weather: LocationWeatherResponse)
+    @Parcelize
+    data class ViewData(var location: Location, var weather: LocationWeatherResponse): Parcelable
     data class TransientNewPlaceData(val id: String, val postalCode: String?, val stateCode: String, val countryCode: String,
                                      val country: String, val locality: String)
+    data class ForecastData(val forcastResponse: LocationForecastResponse, val position: Int)
 
     private lateinit var transientNewPlaceData: TransientNewPlaceData
     private lateinit var savedLocations: List<Location>
@@ -49,7 +54,8 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         val isLoading: Boolean = true,
         val populateRecyclerViewData: Boolean = false,
         val newViewDataPosition: Int = -1,
-        val updateViewDataAtPosition: Int = -1
+        val updateViewDataAtPosition: Int = -1,
+        val forecastData: ForecastData? = null
     )
 
     val viewStateLiveData: LiveData<ViewState>
@@ -70,7 +76,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         listViewData.removeAt(position)
         if (listViewData.isEmpty()) {
             _viewStateLiveData.value = ViewState(isLoading = false, populateRecyclerViewData = false,
-                newViewDataPosition = -1, updateViewDataAtPosition = -1)
+                newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null)
         }
     }
 
@@ -100,7 +106,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             weatherRepository.insert(viewData.location)
             if (!listViewData.isEmpty()) {
                 _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = false,
-                    newViewDataPosition = -1, updateViewDataAtPosition = -1))
+                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null))
             }
         }
     }
@@ -117,7 +123,8 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                 if (weatherRepository.update(arrayOf(existingPlaceID), location)) {
                     listViewData[position] = ViewData(location, locationWeatherResponse)
                     _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
-            newViewDataPosition = -1, updateViewDataAtPosition = position))
+                        populateRecyclerViewData = false, newViewDataPosition = -1, updateViewDataAtPosition = position,
+                        forecastData = null))
                 }
             }
         }
@@ -155,7 +162,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             } else {
                 // Mark: currentViewState() is not yet set.
                 _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = true,
-                    newViewDataPosition = -1, updateViewDataAtPosition = -1))
+                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null))
             }
         }
     }
@@ -166,7 +173,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                if(!(weatherRepository.isPlaceExists(placeID = place.id.toString()))) {
                    _viewStateLiveData.postValue(currentViewState().copy(isLoading = true,
                        populateRecyclerViewData = false, newViewDataPosition = -1,
-                       updateViewDataAtPosition = -1))
+                       updateViewDataAtPosition = -1, forecastData = null))
                    var postalCode: String? = null
                    var countryCode: String = ""
                    var country: String = ""
@@ -244,7 +251,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             weatherRepository.insert(location)
             listViewData.add(ViewData(location, locationWeatherResponse))
             _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
-                newViewDataPosition = listViewData.size-1, updateViewDataAtPosition = -1))
+                newViewDataPosition = listViewData.size-1, updateViewDataAtPosition = -1, forecastData = null))
         }
     }
 
@@ -266,6 +273,24 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         }
         Log.e("LIST_VIEW_DATA", listViewData.toString())
         _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
-            populateRecyclerViewData = true))
+            populateRecyclerViewData = true, newViewDataPosition = -1, updateViewDataAtPosition = -1,
+            forecastData = null))
+    }
+
+    fun fetchForecastForLocation(position: Int) {
+        val cityID = listViewData[position].location.cityID
+        _viewStateLiveData.postValue(ViewState(isLoading = true, populateRecyclerViewData = false,
+            newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null))
+        GlobalScope.launch(Dispatchers.IO) {
+            weatherRepository.fetchLocationForecast(cityID) {
+                _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = false,
+                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = ForecastData(it, position)
+                ))
+            }
+        }
+    }
+
+    fun resetForecastState() {
+        _viewStateLiveData.postValue(currentViewState().copy(forecastData = null))
     }
 }

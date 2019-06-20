@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.rahul.weatherapp.data.database.LocationDao
 import com.rahul.weatherapp.data.database.entity.Location
+import com.rahul.weatherapp.data.network.LocationForecastResponse.LocationForecastResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 import com.rahul.weatherapp.data.network.WeatherNetworkDataSource
@@ -51,6 +52,10 @@ class WeatherRepositoryImpl(
     override suspend fun fetchLocationWeatherInBulk(cityIDs: String,
                                               callback: ((response: BulkLocationWeatherResponse) -> Unit)) {
         weatherNetworkDataSource.fetchLocationWeatherInBulk(cityIDs,callback)
+    }
+
+    override suspend fun fetchLocationForecast(cityID: String, callback: (response: LocationForecastResponse) -> Unit) {
+        weatherNetworkDataSource.fetchLocationForecast(cityID, callback)
     }
 
     @WorkerThread

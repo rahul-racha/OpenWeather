@@ -1,6 +1,9 @@
 package com.rahul.weatherapp.data.network.LocationWeatherResponse
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 data class Sys(
     val country: String?,
     val id: Int?,
@@ -8,4 +11,4 @@ data class Sys(
     val sunrise: Int?,
     val sunset: Int?,
     val type: Int?
-)
+): Parcelable

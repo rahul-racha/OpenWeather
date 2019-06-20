@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.rahul.weatherapp.data.database.entity.Location
+import com.rahul.weatherapp.data.network.LocationForecastResponse.LocationForecastResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 import com.rahul.weatherapp.internal.NoConnectivityException
@@ -61,6 +62,20 @@ class WeatherNetworkDataSourceImpl(
                 .await()
             Log.e("BULK_WEATHER", fetchedBulkLocationWeather.toString())
             callback(fetchedBulkLocationWeather)
+        } catch (e: NoConnectivityException) {
+            Log.e("Connectivity", "No internet connection", e)
+        } catch (e: Exception) {
+            Log.e("EXCEPTION", e.localizedMessage)
+        }
+    }
+
+    override suspend fun fetchLocationForecast(cityID: String, callback: (response: LocationForecastResponse) -> Unit) {
+        try {
+            val fetchedLocationForecast = openWeatherAPIService
+                .getForecast(cityID)
+                .await()
+            Log.e("LOCATION_FORECAST", fetchedLocationForecast.toString())
+            callback(fetchedLocationForecast)
         } catch (e: NoConnectivityException) {
             Log.e("Connectivity", "No internet connection", e)
         } catch (e: Exception) {

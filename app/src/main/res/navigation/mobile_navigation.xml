@@ -4,5 +4,21 @@
             xmlns:tools="http://schemas.android.com/tools" android:id="@+id/mobile_navigation"
             app:startDestination="@+id/locations_fragment">
     <fragment android:id="@+id/locations_fragment" android:name="com.rahul.weatherapp.ui.Locations.fragments.LocationsFragment"
-              android:label="locations_fragment" tools:layout="@layout/locations_fragment"/>
+              android:label="locations_fragment" tools:layout="@layout/locations_fragment">
+        <action android:id="@+id/forecast_action"
+                app:destination="@id/forecast_fragment"/>
+    </fragment>
+    <fragment android:id="@+id/forecast_fragment"
+              android:name="com.rahul.weatherapp.ui.LocationForecast.ForecastFragment" android:label="forecast_fragment"
+              tools:layout="@layout/forecast_fragment">
+        <argument android:name="forecastData"
+                  app:argType="com.rahul.weatherapp.data.network.LocationForecastResponse.LocationForecastResponse"/>
+        <action
+                app:destination="@id/locations_fragment" app:exitAnim="@anim/nav_default_exit_anim"
+                app:enterAnim="@anim/nav_default_enter_anim" android:id="@+id/locations_action"
+                app:popUpTo="@+id/mobile_navigation" app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+                app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+        <argument android:name="locationViewData"
+                  app:argType="com.rahul.weatherapp.ui.Locations.fragments.LocationsViewModel$ViewData"/>
+    </fragment>
 </navigation>
