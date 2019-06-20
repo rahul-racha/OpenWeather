@@ -86,6 +86,11 @@ class AddPlaceActivity : AppCompatActivity() {
                     setResult(Activity.RESULT_OK)
                 } else {
                     intentWithResult.putExtra("selected_place_parcelable", selectedPlace)
+                    val editPosition = intent.extras.getInt(R.string.edit_place_key.toString())
+                    Log.e("EDIT_CLICKED_POSITION", editPosition.toString())
+                    if (editPosition != null) {
+                        intentWithResult.putExtra(R.string.edit_place_key.toString(), editPosition)
+                    }
                     setResult(Activity.RESULT_OK, intentWithResult)
                 }
                 finish()
@@ -97,6 +102,11 @@ class AddPlaceActivity : AppCompatActivity() {
         autocompleteFragment.setPlaceFields(mutableListOf(Place.Field.ID, Place.Field.NAME,
             Place.Field.ADDRESS_COMPONENTS, Place.Field.PHOTO_METADATAS))
         autocompleteFragment.setTypeFilter(TypeFilter.REGIONS)
+        val hintText = intent.getStringExtra(R.string.hint_text_key.toString())
+        Log.e("HINT_TEXT", hintText)
+        if (hintText != null) {
+            autocompleteFragment.setHint(hintText)
+        }
     }
 
     private fun addPlaceSelectionListener() {

@@ -54,21 +54,36 @@ class WeatherRepositoryImpl(
     }
 
     @WorkerThread
-    fun insert(vararg locations: Location) {
+    override fun insert(vararg locations: Location) {
         for (loc in locations) {
             locationDao.insert(loc)
         }
     }
 
     @WorkerThread
-    fun delete(vararg locations: Location) {
-        for (loc in locations) {
-            locationDao.delete(loc)
+    override fun delete(vararg placeIDS: String) {
+        for (id in placeIDS) {
+            locationDao.delete(id)
         }
     }
 
     @WorkerThread
-    fun isPlaceExists(placeID: String): Boolean {
+    override fun isPlaceExists(placeID: String): Boolean {
         return locationDao.isPlaceExists(placeID)
+    }
+
+    @WorkerThread
+    override fun update(existingPlaceIDS: Array<String>, vararg locations: Location): Boolean {
+        if (locations.size != existingPlaceIDS.size) {
+            return false
+        }
+        var index = 0
+        for (loc in locations) {
+            locationDao.update(existingPlaceIDS[index], placeID = loc.placeID, cityID = loc.cityID, cityName = loc.cityName,
+                state = loc.administrativeAreaLevel1, countryCode = loc.countryCode, countryName = loc.countryName,
+                zipCode = loc.zipCode)
+            index += 1
+        }
+        return true
     }
 }

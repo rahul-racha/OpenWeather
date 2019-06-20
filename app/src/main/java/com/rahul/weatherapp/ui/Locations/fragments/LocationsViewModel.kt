@@ -23,6 +23,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     companion object {
         val FIRST_LAUNCH_COMPLETED: String = "first_launch_completed"
         val ADD_PLACE_ACTIVITY_CODE: Int = 1
+        val EDIT_PLACE_ACTIVITY_CODE: Int = 2
     }
 
     enum class AddressType(val constant: String) {
@@ -47,11 +48,21 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     data class ViewState(
         val isLoading: Boolean = true,
         val populateRecyclerViewData: Boolean = false,
-        val newViewDataPosition: Int = -1
+        val newViewDataPosition: Int = -1,
+        val updateViewDataAtPosition: Int = -1
     )
 
     val viewStateLiveData: LiveData<ViewState>
         get() = _viewStateLiveData
+
+    init {
+        val locationDao = WeatherDatabase(application).locationDao()
+        val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(application))
+        val weatherNetworkDataSourceImpl = WeatherNetworkDataSourceImpl(apiService)
+        weatherRepository = WeatherRepositoryImpl(locationDao, weatherNetworkDataSourceImpl)
+        handleDefaultPreferences(application)
+        _viewStateLiveData.postValue(ViewState())
+    }
 
     fun getListViewData(): List<ViewData> = listViewData
     fun removeItemFromViewData(position: Int) {
@@ -68,7 +79,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     fun addDeletedLocationToMap(viewData: ViewData) {
         deletedLocationMap[viewData.location.placeID] = viewData
         GlobalScope.launch(Dispatchers.IO) {
-            weatherRepository.delete(viewData.location)
+            weatherRepository.delete(viewData.location.placeID)
         }
     }
 
@@ -79,13 +90,22 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    init {
-        val locationDao = WeatherDatabase(application).locationDao()
-        val apiService = OpenWeatherAPIService(ConnectivityInterceptorImpl(application))
-        val weatherNetworkDataSourceImpl = WeatherNetworkDataSourceImpl(apiService)
-        weatherRepository = WeatherRepositoryImpl(locationDao, weatherNetworkDataSourceImpl)
-        handleDefaultPreferences(application)
-        _viewStateLiveData.postValue(ViewState())
+    fun replaceItem(position: Int, place: Place) {
+        loadNewPlace(place) { locationWeatherResponse ->
+            val existingPlaceID = listViewData[position].location.placeID
+            val location = Location(placeID = transientNewPlaceData.id.toString(),
+                cityID = locationWeatherResponse.id.toString(), cityName = transientNewPlaceData.locality,
+                countryCode = transientNewPlaceData.countryCode, countryName = transientNewPlaceData.country,
+                zipCode = transientNewPlaceData.postalCode ?: "",
+                administrativeAreaLevel1 = transientNewPlaceData.stateCode)
+            GlobalScope.launch(Dispatchers.IO) {
+                if (weatherRepository.update(arrayOf(existingPlaceID), location)) {
+                    listViewData[position] = ViewData(location, locationWeatherResponse)
+                    _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
+            newViewDataPosition = -1, updateViewDataAtPosition = position))
+                }
+            }
+        }
     }
 
     private fun handleDefaultPreferences(application: Application) {
@@ -117,15 +137,21 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             Log.e("SAVED_LOCATIONS",savedLocations.toString())
             if (savedLocations.size > 0) {
                 loadWeatherForSavedLocations(savedLocations)
+            } else {
+                // Mark: currentViewState() is not yet set.
+                _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = true,
+                    newViewDataPosition = -1, updateViewDataAtPosition = -1))
             }
         }
     }
 
-    fun addNewPlace(place: Place) {
+    fun loadNewPlace(place: Place, callback: ((response: LocationWeatherResponse) -> Unit)? = null) {
         if (place.addressComponents is AddressComponents) {
             GlobalScope.launch(Dispatchers.IO) {
                if(!(weatherRepository.isPlaceExists(placeID = place.id.toString()))) {
-                   _viewStateLiveData.postValue(currentViewState().copy(isLoading = true))
+                   _viewStateLiveData.postValue(currentViewState().copy(isLoading = true,
+                       populateRecyclerViewData = false, newViewDataPosition = -1,
+                       updateViewDataAtPosition = -1))
                    var postalCode: String? = null
                    var countryCode: String = ""
                    var country: String = ""
@@ -148,7 +174,16 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                    transientNewPlaceData = TransientNewPlaceData(place.id.toString(), postalCode, stateCode,
                        countryCode, country, locality)
                    Log.e("TRANSIENT_PLACE", transientNewPlaceData.toString())
-                   loadWeatherForTransientPlace(transientNewPlaceData)
+
+                   if (callback == null) {
+                       loadWeatherForTransientPlace(transientNewPlaceData) { locationWeatherResponse ->
+                           saveLocationToDb(locationWeatherResponse, transientNewPlaceData)
+                       }
+                   } else {
+                       loadWeatherForTransientPlace(transientNewPlaceData) {
+                           callback(it)
+                       }
+                   }
                }
             }
 //            TODO("show place exists alert")
@@ -172,17 +207,16 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun loadWeatherForTransientPlace(place: TransientNewPlaceData) {
+    private fun loadWeatherForTransientPlace(place: TransientNewPlaceData,
+                                             callback: ((response: LocationWeatherResponse) -> Unit)) {
         GlobalScope.launch(Dispatchers.IO) {
             if (place.postalCode != null) {
                 weatherRepository.fetchLocationWeatherByZip(place.postalCode!!, place.countryCode) {
-                        locationWeatherResponse ->
-                    saveLocationToDb(locationWeatherResponse, place)
+                    callback(it)
                 }
             } else {
                 weatherRepository.fetchLocationWeatherByCity(place.locality, place.countryCode) {
-                        locationWeatherResponse ->
-                    saveLocationToDb(locationWeatherResponse, place)
+                    callback(it)
                 }
             }
         }
@@ -195,22 +229,19 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             weatherRepository.insert(location)
             listViewData.add(ViewData(location, locationWeatherResponse))
             _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
-                newViewDataPosition = listViewData.size-1))
+                newViewDataPosition = listViewData.size-1, updateViewDataAtPosition = -1))
         }
     }
 
     private fun createListViewData(savedLocationList: List<Location>, bulkResponse: BulkLocationWeatherResponse) {
-             if (savedLocationList.size == bulkResponse.cnt) {
-                 var i = 0
-                 savedLocationList.forEach { location ->
-                    listViewData.add(ViewData(location, bulkResponse.list!![i++]!!))
-                }
-                 _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
-                     populateRecyclerViewData = true))
-             }
+        if (savedLocationList.size == bulkResponse.cnt) {
+            var i = 0
+            savedLocationList.forEach { location ->
+                listViewData.add(ViewData(location, bulkResponse.list!![i++]!!))
+            }
+        }
         Log.e("LIST_VIEW_DATA", listViewData.toString())
+        _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
+            populateRecyclerViewData = true))
     }
 }
-
-//                   _viewStateLiveData.postValue(ViewState(isLoading = true, populateRecyclerViewData = false,
-//                       newViewData = false))

@@ -7,7 +7,12 @@ import androidx.room.PrimaryKey
 object TableProperties {
     const val tableName: String = "location"
     const val placeID: String = "place_id"
-    const val filterASC: String = "city_name"
+    const val cityID: String = "city_id"
+    const val cityName: String = "city_name"
+    const val state: String = "administrative_area_level_1"
+    const val countryCode: String = "country_code"
+    const val countryName: String = "country_name"
+    const val zipCode: String = "zip_code"
 }
 
 @Entity(tableName = TableProperties.tableName) //primaryKeys = arrayOf("city_name", "country_code", "zip_code")

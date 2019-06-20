@@ -30,6 +30,7 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.rahul.weatherapp.ui.*
+import kotlinx.android.synthetic.main.location_row.view.*
 import kotlinx.android.synthetic.main.locations_fragment.view.*
 
 
@@ -67,9 +68,12 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
         floatingButton.setOnClickListener(object: View.OnClickListener {
             override fun onClick(v: View?) {
                 val intent = Intent(activity, AddPlaceActivity::class.java)
+                intent.putExtra(R.string.hint_text_key.toString(), "Search for locations")
                 startActivityForResult(intent, LocationsViewModel.ADD_PLACE_ACTIVITY_CODE)
             }
         })
+
+        setupRecyclerView()
 
         viewModel.viewStateLiveData.observe(viewLifecycleOwner, Observer {
             it?.let { render(it) }
@@ -100,18 +104,22 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
 
         when (viewState.populateRecyclerViewData) {
             true -> {
-                setupRecyclerView()
+                recyclerView.adapter!!.notifyDataSetChanged()
             }
         }
 
         if (viewState.newViewDataPosition > -1) {
             recyclerView.adapter!!.notifyItemInserted(viewState.newViewDataPosition)
         }
+
+        if (viewState.updateViewDataAtPosition > -1) {
+            recyclerView.adapter!!.notifyItemChanged(viewState.updateViewDataAtPosition)
+        }
     }
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(activity)
-        recyclerView.adapter = LocationsAdapter(viewModel.getListViewData())
+        recyclerView.adapter = LocationsAdapter(viewModel.getListViewData(), this)
         recyclerItemTouchHelper = RecyclerItemSwipeHelper(0,ItemTouchHelper.LEFT,this)
         itemTouchHelperCallback = ItemTouchHelper(recyclerItemTouchHelper)
         itemTouchHelperCallback.attachToRecyclerView(recyclerView)
@@ -120,7 +128,8 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, intentData: Intent?) {
         super.onActivityResult(requestCode, resultCode, intentData)
         Log.e("RESULT_CODE_ADD_PLACE", resultCode.toString())
-        if (requestCode == LocationsViewModel.ADD_PLACE_ACTIVITY_CODE && resultCode == Activity.RESULT_OK) {
+
+        if (resultCode == Activity.RESULT_OK) {
             if (null == intentData) {
                 Toast.makeText(
                     context,
@@ -129,9 +138,19 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
                 ).show()
                 return
             }
-            val selectedPlace = intentData!!.extras.getParcelable<Place>("selected_place_parcelable")
-            Log.e("Place_RESULT", selectedPlace.toString())
-            viewModel.addNewPlace(selectedPlace)
+            if (requestCode == LocationsViewModel.ADD_PLACE_ACTIVITY_CODE) {
+                val selectedPlace = intentData!!.extras.getParcelable<Place>("selected_place_parcelable")
+                Log.e("Place_RESULT", selectedPlace.toString())
+                viewModel.loadNewPlace(selectedPlace)
+                return
+            }
+            if (requestCode == LocationsViewModel.EDIT_PLACE_ACTIVITY_CODE) {
+                val selectedPlace = intentData!!.extras.getParcelable<Place>("selected_place_parcelable")
+                Log.e("EDIT_RESULT", selectedPlace.toString())
+                Log.e("ACTIVTY_RESULT_POSITION", R.string.edit_place_key.toString())
+                viewModel.replaceItem(intentData!!.extras.getInt(R.string.edit_place_key.toString()), selectedPlace)
+                return
+            }
         }
     }
 
@@ -147,7 +166,7 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int, position: Int) {
-
+        //Mark: Can design a custom swipe feature on recycler view registering click events. Painful :(
         if (viewHolder is LocationsAdapter.LocationViewHolder) {
             val viewData = viewModel.getListViewData()
             val locality: String = viewData[position].location.cityName
@@ -179,16 +198,29 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
         }
     }
 
+    override fun onClicked(viewHolder: RecyclerView.ViewHolder, position: Int) {
+        if (viewHolder is LocationsAdapter.LocationViewHolder) {
+            Toast.makeText(context, "Touched", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onClicked(view: View, position: Int) {
-        //Mark: Can design a custom swipe feature on recycler view registering click events. Painful :(
+        // Mark: Observe for view
     }
 
-    override fun onDeleteClicked(position: Int) {
-        Toast.makeText(context, "Delete clicked on ${position}", Toast.LENGTH_LONG).show()
-    }
-
-    override fun onEditClicked(position: Int) {
-        Toast.makeText(context, "Edit clicked on ${position}", Toast.LENGTH_LONG).show()
+    override fun onEditClicked(viewHolder: RecyclerView.ViewHolder, position: Int) {
+        if (viewHolder is LocationsAdapter.LocationViewHolder) {
+            val intent = Intent(activity, AddPlaceActivity::class.java)
+            var hintText = "Edit " + (viewHolder.itemView.view_foreground.locality_textview.text as String) // + ", " +
+//                    (viewHolder.itemView.view_foreground.area_textview.text as String)
+            val zipCode = viewModel.getListViewData()[position].location.zipCode
+            if (zipCode != "") {
+                hintText += ", " + zipCode
+            }
+            intent.putExtra(R.string.hint_text_key.toString(), hintText)
+            intent.putExtra(R.string.edit_place_key.toString(), position)
+            startActivityForResult(intent, LocationsViewModel.EDIT_PLACE_ACTIVITY_CODE)
+        }
     }
 
 }

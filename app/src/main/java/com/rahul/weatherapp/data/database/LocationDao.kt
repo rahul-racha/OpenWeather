@@ -8,7 +8,7 @@ import com.rahul.weatherapp.data.database.entity.TableProperties as tProp
 @Dao
 interface LocationDao {
 
-    @Query("SELECT * FROM ${tProp.tableName} ORDER BY ${tProp.filterASC} ASC")
+    @Query("SELECT * FROM ${tProp.tableName}")
     fun getAllLocations(): List<Location>
 
     @Query("SELECT EXISTS(SELECT * FROM ${tProp.tableName} WHERE ${tProp.placeID} = :placeID)")
@@ -17,8 +17,11 @@ interface LocationDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insert(vararg locations: Location)
 
-    @Delete
-    fun delete(vararg locations: Location)
+    @Query("UPDATE ${tProp.tableName} SET ${tProp.placeID} = :placeID, ${tProp.cityID} = :cityID, ${tProp.cityName} = :cityName, ${tProp.state} = :state, ${tProp.countryCode} = :countryCode, ${tProp.countryName} = :countryName, ${tProp.zipCode} = :zipCode WHERE ${tProp.placeID} = :existingPlaceID")
+    fun update(existingPlaceID: String, placeID: String, cityID: String, cityName: String, state: String, countryCode: String,
+               countryName: String, zipCode: String)
+    @Query("DELETE FROM ${tProp.tableName} WHERE ${tProp.placeID} = :placeID")
+    fun delete(placeID: String)
 
     @Query("DELETE FROM ${tProp.tableName}")
     fun deleteAll()

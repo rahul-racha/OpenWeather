@@ -1,6 +1,7 @@
 package com.rahul.weatherapp.data.repository
 
 import androidx.lifecycle.LiveData
+import com.rahul.weatherapp.data.database.entity.Location
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 
@@ -21,4 +22,9 @@ interface WeatherRepository {
         cityIDs: String,
         callback: ((response: BulkLocationWeatherResponse) -> Unit)
     )
+
+    fun insert(vararg locations: Location)
+    fun delete(vararg placeIDS: String)
+    fun isPlaceExists(placeID: String): Boolean
+    fun update(existingPlaceIDS: Array<String>, vararg locations: Location): Boolean
 }

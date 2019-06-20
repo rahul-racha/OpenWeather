@@ -11,4 +11,6 @@
     <string name="delete_text_view">Delete</string>
     <string name="delete_icon_desc">swipe to delete</string>
     <string name="edit_icon_desc">swipe to edit</string>
+    <string name="edit_place_key">index_to_edit</string>
+    <string name="hint_text_key">hint_text</string>
 </resources>
