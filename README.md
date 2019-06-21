@@ -14,7 +14,7 @@ OpenWeather is an Android application designed to look for a location's weather 
   |-------------------------------------------------|------------------------------------------------------|-----------------|
   | <img src="./screenshots/home.png" width="250"/> | <img src="./screenshots/locations.png" width="250"/> | <img src="./screenshots/find.png" width="250"/>|
   
-  | Search Results                                            | Forecast Details                                    | Search |
+  | Search Results                                            | Forecast Details                                    | Delete |
   |-----------------------------------------------------------|-----------------------------------------------------|--------|
   | <img src="./screenshots/search-results.png" width="250"/> | <img src="./screenshots/forecast.png" width="250"/> | <img src="./screenshots/delete.jpeg" width="250"/>|
 
