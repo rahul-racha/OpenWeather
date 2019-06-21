@@ -1,4 +1,4 @@
-package com.rahul.weatherapp.ui.Locations.fragments
+package com.rahul.weatherapp.ui.fragments.LocationWeather
 
 import android.app.Application
 import android.os.Parcelable
@@ -77,8 +77,11 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     fun removeItemFromViewData(position: Int) {
         listViewData.removeAt(position)
         if (listViewData.isEmpty()) {
-            _viewStateLiveData.value = ViewState(isLoading = false, populateRecyclerViewData = false,
-                newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null)
+            _viewStateLiveData.value =
+                ViewState(
+                    isLoading = false, populateRecyclerViewData = false,
+                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null
+                )
         }
     }
 
@@ -107,8 +110,12 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         GlobalScope.launch(Dispatchers.IO) {
             weatherRepository.insert(viewData.location)
             if (!listViewData.isEmpty()) {
-                _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = false,
-                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null))
+                _viewStateLiveData.postValue(
+                    ViewState(
+                        isLoading = false, populateRecyclerViewData = false,
+                        newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null
+                    )
+                )
             }
         }
     }
@@ -126,7 +133,11 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                 )
                 GlobalScope.launch(Dispatchers.IO) {
                     if (weatherRepository.update(arrayOf(existingPlaceID), location)) {
-                        listViewData[position] = ViewData(location, locationWeatherResponse!!)
+                        listViewData[position] =
+                            ViewData(
+                                location,
+                                locationWeatherResponse!!
+                            )
                         _viewStateLiveData.postValue(
                             currentViewState().copy(
                                 isLoading = false,
@@ -148,7 +159,8 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                         updateViewDataAtPosition = -1,
                         forecastData = null,
                         messageBox = mBox
-                ))
+                    )
+                )
             }
         }
     }
@@ -184,8 +196,12 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                 loadWeatherForSavedLocations(savedLocations)
             } else {
                 // Mark: currentViewState() is not yet set.
-                _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = true,
-                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null))
+                _viewStateLiveData.postValue(
+                    ViewState(
+                        isLoading = false, populateRecyclerViewData = true,
+                        newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null
+                    )
+                )
             }
         }
     }
@@ -213,8 +229,11 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                            postalCode = component.name
                        }
                    }
-                   transientNewPlaceData = TransientNewPlaceData(place.id.toString(), postalCode, stateCode,
-                       countryCode, country, locality)
+                   transientNewPlaceData =
+                       TransientNewPlaceData(
+                           place.id.toString(), postalCode, stateCode,
+                           countryCode, country, locality
+                       )
                    Log.e("TRANSIENT_PLACE", transientNewPlaceData.toString())
 
                    if (callback == null) {
@@ -251,7 +270,8 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                            forecastData = null,
                            messageBox = mBox
 
-                       ))
+                       )
+                   )
                }
             }
         }
@@ -270,8 +290,12 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                 if (bulkLocationWeatherResponse != null) {
                     createListViewData(locationList, bulkLocationWeatherResponse!!)
                 } else {
-                    _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = false,
-                        newViewDataPosition = -1, updateViewDataAtPosition = -1, messageBox = mBox))
+                    _viewStateLiveData.postValue(
+                        ViewState(
+                            isLoading = false, populateRecyclerViewData = false,
+                            newViewDataPosition = -1, updateViewDataAtPosition = -1, messageBox = mBox
+                        )
+                    )
                 }
             }
         }
@@ -300,7 +324,12 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             val location = Location(place.id.toString(), locationWeatherResponse.id.toString(), place.locality,
                 place.stateCode, place.countryCode, place.country, place.postalCode ?: "")
             weatherRepository.insert(location)
-            listViewData.add(ViewData(location, locationWeatherResponse))
+            listViewData.add(
+                ViewData(
+                    location,
+                    locationWeatherResponse
+                )
+            )
             _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
                 newViewDataPosition = listViewData.size-1, updateViewDataAtPosition = -1, forecastData = null,
                 messageBox = null))
@@ -315,7 +344,12 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             for (i in 0..savedLocIndexSize) {
                 for (j in 0..bulkIndexSize) {
                     if (savedLocationList[i].cityID == weatherList[j]!!.id!!.toString()) {
-                        listViewData.add(ViewData(savedLocationList[i], weatherList[j]!!))
+                        listViewData.add(
+                            ViewData(
+                                savedLocationList[i],
+                                weatherList[j]!!
+                            )
+                        )
                         break
                     }
                 }
@@ -329,8 +363,12 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun fetchForecastForLocation(position: Int) {
         val cityID = listViewData[position].location.cityID
-        _viewStateLiveData.postValue(ViewState(isLoading = true, populateRecyclerViewData = false,
-            newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null))
+        _viewStateLiveData.postValue(
+            ViewState(
+                isLoading = true, populateRecyclerViewData = false,
+                newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null
+            )
+        )
         GlobalScope.launch(Dispatchers.IO) {
             weatherRepository.fetchLocationForecast(cityID) { forecastWeather, mBox ->
                 if (forecastWeather != null) {
@@ -340,7 +378,10 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                             populateRecyclerViewData = false,
                             newViewDataPosition = -1,
                             updateViewDataAtPosition = -1,
-                            forecastData = ForecastData(forecastWeather!!, position),
+                            forecastData = ForecastData(
+                                forecastWeather!!,
+                                position
+                            ),
                             messageBox = null
                         )
                     )

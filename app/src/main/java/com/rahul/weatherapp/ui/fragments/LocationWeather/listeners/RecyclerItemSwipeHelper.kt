@@ -1,10 +1,10 @@
-package com.rahul.weatherapp.ui
+package com.rahul.weatherapp.ui.fragments.LocationWeather.listeners
 
 import android.graphics.Canvas
-import android.view.MotionEvent
 import android.view.View
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.rahul.weatherapp.ui.fragments.LocationWeather.adapters.LocationsAdapter
 import kotlinx.android.synthetic.main.location_row.view.*
 
 

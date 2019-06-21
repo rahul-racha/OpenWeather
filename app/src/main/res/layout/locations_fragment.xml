@@ -5,7 +5,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.Locations.fragments.LocationsFragment">
+        tools:context=".ui.fragments.LocationWeather.LocationsFragment">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/refresh_layout"
@@ -41,15 +41,15 @@
             android:id="@+id/empty_locations_image_view"
             android:layout_gravity="center"
             android:layout_marginTop="-70dp"
-            android:src="@drawable/ic_location_on_black_144dp"
-            android:tint="@android:color/holo_red_light"
+            android:src="@drawable/ic_location_city_black_144dp"
+            android:tint="@color/quantum_grey"
             android:contentDescription="@string/no_locations_image"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                   android:id="@+id/empty_locations_text_view"
                   android:layout_gravity="center"
-                  android:layout_marginTop="10dp"
+                  android:layout_marginTop="15dp"
                   android:text="@string/no_locations_text"
                   android:textColor="@android:color/background_dark"
                   android:alpha="0.7"
-                  android:textSize="18sp"/>
+                  android:textSize="19sp"/>
 </FrameLayout>

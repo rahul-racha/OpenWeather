@@ -1,6 +1,5 @@
-package com.rahul.weatherapp.ui.LocationForecast
+package com.rahul.weatherapp.ui.fragments.LocationForecast
 
-import android.os.Build
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -8,13 +7,10 @@ import androidx.lifecycle.ViewModel;
 import com.rahul.weatherapp.data.network.LocationForecastResponse.Forecast
 import com.rahul.weatherapp.data.network.LocationForecastResponse.LocationForecastResponse
 import com.rahul.weatherapp.internal.getDayOfWeek
-import com.rahul.weatherapp.ui.Locations.fragments.LocationsViewModel
+import com.rahul.weatherapp.ui.fragments.LocationWeather.LocationsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 
 data class ForecastParentModel(val day: String, val date: String, val childList: MutableList<Forecast>)

@@ -1,13 +1,12 @@
-package com.rahul.weatherapp.ui
+package com.rahul.weatherapp.ui.fragments.LocationForecast.adapters
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.rahul.weatherapp.R
-import com.rahul.weatherapp.ui.LocationForecast.ForecastParentModel
+import com.rahul.weatherapp.ui.fragments.LocationForecast.ForecastParentModel
 import kotlinx.android.synthetic.main.forecast_parent_row.view.*
 
 class ForcastParentAdapter(val parentList: List<ForecastParentModel>):

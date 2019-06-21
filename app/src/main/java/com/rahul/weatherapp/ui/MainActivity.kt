@@ -7,16 +7,9 @@ import androidx.navigation.NavController
 import com.rahul.weatherapp.R
 import androidx.navigation.Navigation
 import androidx.navigation.ui.NavigationUI
-import kotlinx.android.synthetic.main.location_row.view.*
 import android.content.Intent
-import android.transition.Visibility
 import android.util.Log
-import androidx.fragment.app.Fragment
-import com.rahul.weatherapp.ui.Locations.fragments.LocationsFragment
-import android.view.View
 import android.widget.ProgressBar
-import androidx.appcompat.widget.Toolbar
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {

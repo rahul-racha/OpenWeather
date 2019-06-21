@@ -1,9 +1,8 @@
-package com.rahul.weatherapp.ui
+package com.rahul.weatherapp.ui.fragments.LocationWeather.listeners
 
 import android.content.Context
 import android.view.MotionEvent
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.locations_fragment.view.*
 
 class RecyclerItemClickHelper(context: Context, recyclerView: RecyclerView, listener: RecyclerItemTouchListener):
     RecyclerView.OnItemTouchListener {

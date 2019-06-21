@@ -1,14 +1,13 @@
-package com.rahul.weatherapp.ui
+package com.rahul.weatherapp.ui.fragments.LocationWeather.adapters
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.rahul.weatherapp.R
-import com.rahul.weatherapp.ui.Locations.fragments.LocationsViewModel
+import com.rahul.weatherapp.ui.fragments.LocationWeather.listeners.RecyclerItemTouchListener
+import com.rahul.weatherapp.ui.fragments.LocationWeather.LocationsViewModel
 import kotlinx.android.synthetic.main.location_row.view.*
 import kotlin.math.roundToInt
 

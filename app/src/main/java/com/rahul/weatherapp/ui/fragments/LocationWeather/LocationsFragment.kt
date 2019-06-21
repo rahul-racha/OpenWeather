@@ -1,4 +1,4 @@
-package com.rahul.weatherapp.ui.Locations.fragments
+package com.rahul.weatherapp.ui.fragments.LocationWeather
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -23,11 +23,9 @@ import android.widget.Toast
 import com.rahul.weatherapp.R
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -35,11 +33,15 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.rahul.weatherapp.ui.*
+import com.rahul.weatherapp.ui.fragments.LocationWeather.adapters.LocationsAdapter
+import com.rahul.weatherapp.ui.fragments.LocationWeather.listeners.RecyclerItemSwipeHelper
+import com.rahul.weatherapp.ui.fragments.LocationWeather.listeners.RecyclerItemTouchListener
 import kotlinx.android.synthetic.main.location_row.view.*
 import kotlinx.android.synthetic.main.locations_fragment.view.*
 
 
-class LocationsFragment : Fragment(), RecyclerItemTouchListener {
+class LocationsFragment : Fragment(),
+    RecyclerItemTouchListener {
 
     companion object {
         fun newInstance() = LocationsFragment()
@@ -86,7 +88,9 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
             override fun onClick(v: View?) {
                 val intent = Intent(activity, AddPlaceActivity::class.java)
                 intent.putExtra(R.string.hint_text_key.toString(), "Search for location or zip code")
-                startActivityForResult(intent, LocationsViewModel.ADD_PLACE_ACTIVITY_CODE)
+                startActivityForResult(intent,
+                    LocationsViewModel.ADD_PLACE_ACTIVITY_CODE
+                )
             }
         })
 
@@ -100,8 +104,15 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(activity)
-        recyclerView.adapter = LocationsAdapter(viewModel.getListViewData(), this)
-        recyclerItemTouchHelper = RecyclerItemSwipeHelper(0,ItemTouchHelper.LEFT,this)
+        recyclerView.adapter = LocationsAdapter(
+            viewModel.getListViewData(),
+            this
+        )
+        recyclerItemTouchHelper = RecyclerItemSwipeHelper(
+            0,
+            ItemTouchHelper.LEFT,
+            this
+        )
         itemTouchHelperCallback = ItemTouchHelper(recyclerItemTouchHelper)
         itemTouchHelperCallback.attachToRecyclerView(recyclerView)
     }
@@ -150,8 +161,11 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
         if (viewState.forecastData != null) {
             Log.e("ON_CLICK_VIEW_STATE", viewState.toString())
             val viewData = viewModel.getListViewData()[viewState.forecastData.position]
-            val forecastAction = LocationsFragmentDirections.forecastAction(viewState.forecastData.forcastResponse,
-                viewData)
+            val forecastAction =
+                LocationsFragmentDirections.forecastAction(
+                    viewState.forecastData.forcastResponse,
+                    viewData
+                )
             val navController =  (activity!! as MainActivity).navController
             viewModel.resetForecastState()
             navController.popBackStack(R.id.locations_fragment, false)
@@ -266,7 +280,9 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
             }
             intent.putExtra(R.string.hint_text_key.toString(), hintText)
             intent.putExtra(R.string.edit_place_key.toString(), position)
-            startActivityForResult(intent, LocationsViewModel.EDIT_PLACE_ACTIVITY_CODE)
+            startActivityForResult(intent,
+                LocationsViewModel.EDIT_PLACE_ACTIVITY_CODE
+            )
         }
     }
 

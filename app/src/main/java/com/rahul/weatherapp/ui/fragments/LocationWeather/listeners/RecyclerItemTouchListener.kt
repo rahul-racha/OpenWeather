@@ -1,4 +1,4 @@
-package com.rahul.weatherapp.ui
+package com.rahul.weatherapp.ui.fragments.LocationWeather.listeners
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView

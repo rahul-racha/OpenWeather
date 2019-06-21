@@ -1,4 +1,4 @@
-package com.rahul.weatherapp.ui
+package com.rahul.weatherapp.ui.fragments.LocationForecast.adapters
 
 import android.view.LayoutInflater
 import android.view.View
@@ -8,7 +8,6 @@ import com.bumptech.glide.Glide
 import com.rahul.weatherapp.R
 import com.rahul.weatherapp.data.network.LocationForecastResponse.Forecast
 import kotlinx.android.synthetic.main.forecast_child_row.view.*
-import kotlinx.android.synthetic.main.location_row.view.*
 import kotlin.math.roundToInt
 
 class ForecastChildAdapter(val childList: List<Forecast>):

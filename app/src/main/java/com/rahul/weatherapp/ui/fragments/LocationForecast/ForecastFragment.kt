@@ -1,4 +1,4 @@
-package com.rahul.weatherapp.ui.LocationForecast
+package com.rahul.weatherapp.ui.fragments.LocationForecast
 
 import android.graphics.Typeface
 import android.os.Build
@@ -14,29 +14,18 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
-import androidx.navigation.findNavController
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 import com.rahul.weatherapp.R
-import com.rahul.weatherapp.ui.ForcastParentAdapter
-import com.rahul.weatherapp.ui.Locations.fragments.LocationsViewModel
-import com.rahul.weatherapp.ui.LocationsAdapter
+import com.rahul.weatherapp.ui.fragments.LocationWeather.LocationsViewModel
 import com.rahul.weatherapp.ui.MainActivity
-import com.rahul.weatherapp.ui.RecyclerItemSwipeHelper
+import com.rahul.weatherapp.ui.fragments.LocationForecast.adapters.ForcastParentAdapter
 import kotlinx.android.synthetic.main.forecast_fragment.view.*
-import kotlinx.android.synthetic.main.locations_fragment.view.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class ForecastFragment : Fragment() {
 
@@ -84,7 +73,8 @@ class ForecastFragment : Fragment() {
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
-        recyclerView.adapter = ForcastParentAdapter(viewModel.getParentList())
+        recyclerView.adapter =
+            ForcastParentAdapter(viewModel.getParentList())
     }
 
     private fun setTextViews(viewData: LocationsViewModel.ViewData) {

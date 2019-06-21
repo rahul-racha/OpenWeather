@@ -2,24 +2,20 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools" android:id="@+id/mobile_navigation"
-            app:startDestination="@+id/locations_fragment">
-    <fragment android:id="@+id/locations_fragment" android:name="com.rahul.weatherapp.ui.Locations.fragments.LocationsFragment"
+            app:startDestination="@id/locations_fragment">
+    <fragment android:id="@+id/locations_fragment"
+              android:name="com.rahul.weatherapp.ui.fragments.LocationWeather.LocationsFragment"
               android:label="locations_fragment" tools:layout="@layout/locations_fragment">
-        <action android:id="@+id/forecast_action"
-                app:destination="@id/forecast_fragment" app:enterAnim="@anim/nav_default_enter_anim"
-                app:exitAnim="@anim/nav_default_exit_anim" app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-                app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+        <action android:id="@+id/forecast_action" app:destination="@id/forecast_fragment"
+                app:enterAnim="@anim/nav_default_enter_anim" app:exitAnim="@anim/nav_default_exit_anim"
+                app:popEnterAnim="@anim/nav_default_pop_enter_anim" app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
     </fragment>
     <fragment android:id="@+id/forecast_fragment"
-              android:name="com.rahul.weatherapp.ui.LocationForecast.ForecastFragment" android:label="forecast_fragment"
-              tools:layout="@layout/forecast_fragment">
+              android:name="com.rahul.weatherapp.ui.fragments.LocationForecast.ForecastFragment"
+              android:label="forecast_fragment" tools:layout="@layout/forecast_fragment">
         <argument android:name="forecastData"
                   app:argType="com.rahul.weatherapp.data.network.LocationForecastResponse.LocationForecastResponse"/>
         <argument android:name="locationViewData"
-                  app:argType="com.rahul.weatherapp.ui.Locations.fragments.LocationsViewModel$ViewData"/>
-        <action android:id="@+id/action_forecast_fragment_pop" app:enterAnim="@anim/nav_default_enter_anim"
-                app:exitAnim="@anim/nav_default_exit_anim" app:popUpTo="@id/forecast_fragment"
-                app:popUpToInclusive="true" app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-                app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+                  app:argType="com.rahul.weatherapp.ui.fragments.LocationWeather.LocationsViewModel$ViewData"/>
     </fragment>
 </navigation>
