@@ -39,7 +39,8 @@ interface OpenWeatherAPIService {
 
     @GET(value = "forecast")
     fun getForecast(
-        @Query(value = "id") cityID: String
+        @Query(value = "id") cityID: String,
+        @Query(value = "units") units: String = "imperial"
     ): Deferred<LocationForecastResponse>
 
     companion object {

@@ -8,7 +8,7 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class Main(
     val humidity: Int?,
-    val pressure: Int?,
+    val pressure: Double?,
     val temp: Double?,
     @SerializedName("temp_max")
     val tempMax: Double?,
