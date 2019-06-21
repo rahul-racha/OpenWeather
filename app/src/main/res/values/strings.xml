@@ -3,9 +3,9 @@
     <string name="fTitle">open</string>
     <string name="bTitle">weather</string>
     <string name="app_title">openweather</string>
-    <string name="forecast_title">5dayforecast</string>
-    <string name="forecast_fTitle">5day</string>
-    <string name="forecast_bTitle">forecast</string>
+    <string name="forecast_title">forecast</string>
+    <string name="forecast_fTitle">fore</string>
+    <string name="forecast_bTitle">cast</string>
     <string name="location_logo_desc">logo representing location\'s current weather</string>
     <string name="empty_not_saved">Place not saved because it is empty.</string>
     <string name="edit_place_placeholder">Search for a city</string>

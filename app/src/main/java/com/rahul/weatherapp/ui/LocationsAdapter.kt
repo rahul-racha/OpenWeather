@@ -10,6 +10,7 @@ import com.bumptech.glide.Glide
 import com.rahul.weatherapp.R
 import com.rahul.weatherapp.ui.Locations.fragments.LocationsViewModel
 import kotlinx.android.synthetic.main.location_row.view.*
+import kotlin.math.roundToInt
 
 class LocationsAdapter(val locationWeatherList : List<LocationsViewModel.ViewData>, val listener: RecyclerItemTouchListener) :
     RecyclerView.Adapter<LocationsAdapter.LocationViewHolder>() {
@@ -39,7 +40,8 @@ class LocationsAdapter(val locationWeatherList : List<LocationsViewModel.ViewDat
             holder.view.area_textview.text = (holder.view.area_textview.text as String) + ", " +
                     locationWeather.location.zipCode
         }
-        holder.view.temp_textview.text = locationWeather.weather.main!!.temp!!.toString() + "°F"
+        val temperature = locationWeather.weather.main!!.temp!!.roundToInt()
+        holder.view.temp_textview.text = temperature.toString() + "°F"
         holder.view.description_textview.text = locationWeather.weather.weather!![0]!!.description
         val icon = locationWeather.weather.weather!![0]!!.icon
         val imageURL = "http://openweathermap.org/img/w/" + icon + ".png"

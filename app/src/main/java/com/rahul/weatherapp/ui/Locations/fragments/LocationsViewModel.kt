@@ -174,11 +174,8 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                    _viewStateLiveData.postValue(currentViewState().copy(isLoading = true,
                        populateRecyclerViewData = false, newViewDataPosition = -1,
                        updateViewDataAtPosition = -1, forecastData = null))
-                   var postalCode: String? = null
-                   var countryCode: String = ""
-                   var country: String = ""
-                   var locality: String = ""
-                   var stateCode: String = ""
+                   var postalCode: String? = null; var countryCode: String = ""; var country: String = ""
+                   var locality: String = ""; var stateCode: String = ""
                    var addressComponentList = place.addressComponents!!.asList()
                    for (component in addressComponentList) {
                        if (component.types.contains(AddressType.locality.constant)) {
@@ -258,10 +255,8 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
     private fun createListViewData(savedLocationList: List<Location>, bulkResponse: BulkLocationWeatherResponse) {
         // Mark: Open Weather API not giving all results for group city IDS
         if (bulkResponse.cnt != null && bulkResponse.cnt!! > 0) {
-            val savedLocListSize = savedLocationList.size
-            val savedLocIndexSize = savedLocListSize - 1
-            val weatherList = bulkResponse.list!!
-            val bulkIndexSize = weatherList!!.size - 1
+            val savedLocListSize = savedLocationList.size; val savedLocIndexSize = savedLocListSize - 1
+            val weatherList = bulkResponse.list!!; val bulkIndexSize = weatherList!!.size - 1
             for (i in 0..savedLocIndexSize) {
                 for (j in 0..bulkIndexSize) {
                     if (savedLocationList[i].cityID == weatherList[j]!!.id!!.toString()) {

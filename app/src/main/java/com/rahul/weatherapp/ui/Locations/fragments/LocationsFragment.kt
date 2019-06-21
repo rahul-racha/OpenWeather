@@ -147,11 +147,13 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
         }
 
         if (viewState.forecastData != null) {
+            Log.e("ON_CLICK_VIEW_STATE", viewState.toString())
             val viewData = viewModel.getListViewData()[viewState.forecastData.position]
             val forecastAction = LocationsFragmentDirections.forecastAction(viewState.forecastData.forcastResponse,
                 viewData)
             val navController =  (activity!! as MainActivity).navController
             viewModel.resetForecastState()
+            navController.popBackStack(R.id.locations_fragment, false)
             if (navController.currentDestination!!.id == R.id.locations_fragment) {
                 navController.navigate(forecastAction)
             }

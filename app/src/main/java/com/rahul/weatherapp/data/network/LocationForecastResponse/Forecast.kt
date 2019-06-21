@@ -15,5 +15,6 @@ data class Forecast(
     val rain: Rain?,
     val sys: Sys?,
     val weather: List<Weather?>?,
-    val wind: Wind?
+    val wind: Wind?,
+    val customTime: String?
 ): Parcelable
