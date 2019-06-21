@@ -16,6 +16,7 @@ import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeather
 import com.rahul.weatherapp.data.network.OpenWeatherAPIService
 import com.rahul.weatherapp.data.network.WeatherNetworkDataSourceImpl
 import com.rahul.weatherapp.data.repository.WeatherRepositoryImpl
+import com.rahul.weatherapp.internal.MessageBox
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -55,7 +56,8 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         val populateRecyclerViewData: Boolean = false,
         val newViewDataPosition: Int = -1,
         val updateViewDataAtPosition: Int = -1,
-        val forecastData: ForecastData? = null
+        val forecastData: ForecastData? = null,
+        val messageBox: MessageBox? = null
     )
 
     val viewStateLiveData: LiveData<ViewState>
@@ -76,7 +78,7 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         listViewData.removeAt(position)
         if (listViewData.isEmpty()) {
             _viewStateLiveData.value = ViewState(isLoading = false, populateRecyclerViewData = false,
-                newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null)
+                newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null)
         }
     }
 
@@ -106,26 +108,47 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             weatherRepository.insert(viewData.location)
             if (!listViewData.isEmpty()) {
                 _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = false,
-                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null))
+                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null))
             }
         }
     }
 
     fun replaceItem(position: Int, place: Place) {
-        loadNewPlace(place) { locationWeatherResponse ->
-            val existingPlaceID = listViewData[position].location.placeID
-            val location = Location(placeID = transientNewPlaceData.id.toString(),
-                cityID = locationWeatherResponse.id.toString(), cityName = transientNewPlaceData.locality,
-                countryCode = transientNewPlaceData.countryCode, countryName = transientNewPlaceData.country,
-                zipCode = transientNewPlaceData.postalCode ?: "",
-                administrativeAreaLevel1 = transientNewPlaceData.stateCode)
-            GlobalScope.launch(Dispatchers.IO) {
-                if (weatherRepository.update(arrayOf(existingPlaceID), location)) {
-                    listViewData[position] = ViewData(location, locationWeatherResponse)
-                    _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
-                        populateRecyclerViewData = false, newViewDataPosition = -1, updateViewDataAtPosition = position,
-                        forecastData = null))
+        loadNewPlace(place) { locationWeatherResponse, mBox ->
+            if (locationWeatherResponse != null) {
+                val existingPlaceID = listViewData[position].location.placeID
+                val location = Location(
+                    placeID = transientNewPlaceData.id.toString(),
+                    cityID = locationWeatherResponse.id.toString(), cityName = transientNewPlaceData.locality,
+                    countryCode = transientNewPlaceData.countryCode, countryName = transientNewPlaceData.country,
+                    zipCode = transientNewPlaceData.postalCode ?: "",
+                    administrativeAreaLevel1 = transientNewPlaceData.stateCode
+                )
+                GlobalScope.launch(Dispatchers.IO) {
+                    if (weatherRepository.update(arrayOf(existingPlaceID), location)) {
+                        listViewData[position] = ViewData(location, locationWeatherResponse!!)
+                        _viewStateLiveData.postValue(
+                            currentViewState().copy(
+                                isLoading = false,
+                                populateRecyclerViewData = false,
+                                newViewDataPosition = -1,
+                                updateViewDataAtPosition = position,
+                                forecastData = null,
+                                messageBox = null
+                            )
+                        )
+                    }
                 }
+            } else {
+                _viewStateLiveData.postValue(
+                    ViewState(
+                        isLoading = false,
+                        populateRecyclerViewData = false,
+                        newViewDataPosition = -1,
+                        updateViewDataAtPosition = -1,
+                        forecastData = null,
+                        messageBox = mBox
+                ))
             }
         }
     }
@@ -162,18 +185,18 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             } else {
                 // Mark: currentViewState() is not yet set.
                 _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = true,
-                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null))
+                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null))
             }
         }
     }
 
-    fun loadNewPlace(place: Place, callback: ((response: LocationWeatherResponse) -> Unit)? = null) {
+    fun loadNewPlace(place: Place, callback: ((response: LocationWeatherResponse?, messageBox: MessageBox?) -> Unit)? = null) {
         if (place.addressComponents is AddressComponents) {
             GlobalScope.launch(Dispatchers.IO) {
                if(!(weatherRepository.isPlaceExists(placeID = place.id.toString()))) {
                    _viewStateLiveData.postValue(currentViewState().copy(isLoading = true,
                        populateRecyclerViewData = false, newViewDataPosition = -1,
-                       updateViewDataAtPosition = -1, forecastData = null))
+                       updateViewDataAtPosition = -1, forecastData = null, messageBox = null))
                    var postalCode: String? = null; var countryCode: String = ""; var country: String = ""
                    var locality: String = ""; var stateCode: String = ""
                    var addressComponentList = place.addressComponents!!.asList()
@@ -195,18 +218,42 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                    Log.e("TRANSIENT_PLACE", transientNewPlaceData.toString())
 
                    if (callback == null) {
-                       loadWeatherForTransientPlace(transientNewPlaceData) { locationWeatherResponse ->
-                           saveLocationToDb(locationWeatherResponse, transientNewPlaceData)
+                       loadWeatherForTransientPlace(transientNewPlaceData) { locationWeatherResponse, mBox ->
+                           if (locationWeatherResponse != null) {
+                               saveLocationToDb(locationWeatherResponse!!, transientNewPlaceData)
+                           } else {
+                               _viewStateLiveData.postValue(
+                                   ViewState(
+                                       isLoading = false,
+                                       populateRecyclerViewData = false,
+                                       newViewDataPosition = -1,
+                                       updateViewDataAtPosition = -1,
+                                       forecastData = null,
+                                       messageBox = mBox
+                                   )
+                               )
+                           }
                        }
                    } else {
-                       loadWeatherForTransientPlace(transientNewPlaceData) {
-                           callback(it)
+                       loadWeatherForTransientPlace(transientNewPlaceData) { locationWeather, mBox ->
+                           callback(locationWeather, mBox)
                        }
                    }
                }
             }
 //            TODO("show place exists alert")
             Log.e("PLACE_EXISTS", "${place.id.toString()} exists")
+            val mBox = MessageBox(title = "Alert", message = "Place already exists")
+            _viewStateLiveData.postValue(
+                ViewState(
+                    isLoading = false,
+                    populateRecyclerViewData = false,
+                    newViewDataPosition = -1,
+                    updateViewDataAtPosition = -1,
+                    forecastData = null,
+                    messageBox = mBox
+
+            ))
         }
 //        TODO("show address is empty")
     }
@@ -220,22 +267,30 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         bulkCityIDStr = bulkCityIDStr.removeSuffix(",")
         Log.e("BULK_CITIES_ID", bulkCityIDStr)
         GlobalScope.launch(Dispatchers.IO) {
-            weatherRepository.fetchLocationWeatherInBulk(bulkCityIDStr) { bulkLocationWeatherResponse ->
-                createListViewData(locationList, bulkLocationWeatherResponse)
+            weatherRepository.fetchLocationWeatherInBulk(bulkCityIDStr) { bulkLocationWeatherResponse, mBox ->
+                if (bulkLocationWeatherResponse != null) {
+                    createListViewData(locationList, bulkLocationWeatherResponse!!)
+                } else {
+                    _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = false,
+                        newViewDataPosition = -1, updateViewDataAtPosition = -1, messageBox = mBox))
+                }
             }
         }
     }
 
     private fun loadWeatherForTransientPlace(place: TransientNewPlaceData,
-                                             callback: ((response: LocationWeatherResponse) -> Unit)) {
+                                             callback: ((response: LocationWeatherResponse?, messageBox: MessageBox?)
+                                             -> Unit)) {
         GlobalScope.launch(Dispatchers.IO) {
             if (place.postalCode != null) {
-                weatherRepository.fetchLocationWeatherByZip(place.postalCode!!, place.countryCode) {
-                    callback(it)
+                weatherRepository.fetchLocationWeatherByZip(place.postalCode!!, place.countryCode) { locationWeather,
+                                                                                                     mBox ->
+                    callback(locationWeather, mBox)
                 }
             } else {
-                weatherRepository.fetchLocationWeatherByCity(place.locality, place.countryCode) {
-                    callback(it)
+                weatherRepository.fetchLocationWeatherByCity(place.locality, place.countryCode) { locationWeather,
+                                                                                                  mBox ->
+                    callback(locationWeather, mBox)
                 }
             }
         }
@@ -248,7 +303,8 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
             weatherRepository.insert(location)
             listViewData.add(ViewData(location, locationWeatherResponse))
             _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
-                newViewDataPosition = listViewData.size-1, updateViewDataAtPosition = -1, forecastData = null))
+                newViewDataPosition = listViewData.size-1, updateViewDataAtPosition = -1, forecastData = null,
+                messageBox = null))
         }
     }
 
@@ -269,18 +325,38 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
         Log.e("LIST_VIEW_DATA", listViewData.toString())
         _viewStateLiveData.postValue(currentViewState().copy(isLoading = false,
             populateRecyclerViewData = true, newViewDataPosition = -1, updateViewDataAtPosition = -1,
-            forecastData = null))
+            forecastData = null, messageBox = null))
     }
 
     fun fetchForecastForLocation(position: Int) {
         val cityID = listViewData[position].location.cityID
         _viewStateLiveData.postValue(ViewState(isLoading = true, populateRecyclerViewData = false,
-            newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null))
+            newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = null, messageBox = null))
         GlobalScope.launch(Dispatchers.IO) {
-            weatherRepository.fetchLocationForecast(cityID) {
-                _viewStateLiveData.postValue(ViewState(isLoading = false, populateRecyclerViewData = false,
-                    newViewDataPosition = -1, updateViewDataAtPosition = -1, forecastData = ForecastData(it, position)
-                ))
+            weatherRepository.fetchLocationForecast(cityID) { forecastWeather, mBox ->
+                if (forecastWeather != null) {
+                    _viewStateLiveData.postValue(
+                        ViewState(
+                            isLoading = false,
+                            populateRecyclerViewData = false,
+                            newViewDataPosition = -1,
+                            updateViewDataAtPosition = -1,
+                            forecastData = ForecastData(forecastWeather!!, position),
+                            messageBox = null
+                        )
+                    )
+                } else {
+                    _viewStateLiveData.postValue(
+                        ViewState(
+                            isLoading = false,
+                            populateRecyclerViewData = false,
+                            newViewDataPosition = -1,
+                            updateViewDataAtPosition = -1,
+                            forecastData = null,
+                            messageBox = mBox
+                        )
+                    )
+                }
             }
         }
     }

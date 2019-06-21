@@ -1,6 +1,7 @@
 package com.rahul.weatherapp.ui.Locations.fragments
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -84,7 +85,7 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
         floatingButton.setOnClickListener(object: View.OnClickListener {
             override fun onClick(v: View?) {
                 val intent = Intent(activity, AddPlaceActivity::class.java)
-                intent.putExtra(R.string.hint_text_key.toString(), "Search for locations")
+                intent.putExtra(R.string.hint_text_key.toString(), "Search for location or zip code")
                 startActivityForResult(intent, LocationsViewModel.ADD_PLACE_ACTIVITY_CODE)
             }
         })
@@ -157,6 +158,15 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
             if (navController.currentDestination!!.id == R.id.locations_fragment) {
                 navController.navigate(forecastAction)
             }
+        }
+
+        viewState.messageBox?.let {
+            val builder = AlertDialog.Builder(context)
+            builder.setTitle(it.title)
+            builder.setMessage(it.message)
+            builder.setPositiveButton("OK", null)
+            val dialog: AlertDialog = builder.create()
+            dialog.show()
         }
     }
 
@@ -237,7 +247,6 @@ class LocationsFragment : Fragment(), RecyclerItemTouchListener {
 
     override fun onClicked(viewHolder: RecyclerView.ViewHolder, position: Int) {
         if (viewHolder is LocationsAdapter.LocationViewHolder) {
-            Toast.makeText(context, "Touched", Toast.LENGTH_SHORT).show()
             viewModel.fetchForecastForLocation(position)
         }
     }

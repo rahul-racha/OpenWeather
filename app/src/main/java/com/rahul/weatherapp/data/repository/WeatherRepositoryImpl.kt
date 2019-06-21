@@ -9,6 +9,7 @@ import com.rahul.weatherapp.data.network.LocationForecastResponse.LocationForeca
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.BulkLocationWeatherResponse
 import com.rahul.weatherapp.data.network.LocationWeatherResponse.LocationWeatherResponse
 import com.rahul.weatherapp.data.network.WeatherNetworkDataSource
+import com.rahul.weatherapp.internal.MessageBox
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -36,7 +37,7 @@ class WeatherRepositoryImpl(
     override suspend fun fetchLocationWeatherByZip(
         zipCode: String,
         countryCode: String,
-        callback: ((response: LocationWeatherResponse) -> Unit)
+        callback: ((response: LocationWeatherResponse?, messageBox: MessageBox?) -> Unit)
     ) {
         weatherNetworkDataSource.fetchLocationWeatherByZip(zipCode, countryCode, callback)
     }
@@ -44,17 +45,19 @@ class WeatherRepositoryImpl(
     override suspend fun fetchLocationWeatherByCity(
         city: String,
         countryCode: String,
-        callback: (response: LocationWeatherResponse) -> Unit
+        callback: (response: LocationWeatherResponse?, messageBox: MessageBox?) -> Unit
     ) {
         weatherNetworkDataSource.fetchLocationWeatherByCity(city,countryCode, callback)
     }
 
     override suspend fun fetchLocationWeatherInBulk(cityIDs: String,
-                                              callback: ((response: BulkLocationWeatherResponse) -> Unit)) {
+                                              callback: ((response: BulkLocationWeatherResponse?,
+                                                          messageBox: MessageBox?) -> Unit)) {
         weatherNetworkDataSource.fetchLocationWeatherInBulk(cityIDs,callback)
     }
 
-    override suspend fun fetchLocationForecast(cityID: String, callback: (response: LocationForecastResponse) -> Unit) {
+    override suspend fun fetchLocationForecast(cityID: String, callback: (response: LocationForecastResponse?,
+                                                                          messageBox: MessageBox?) -> Unit) {
         weatherNetworkDataSource.fetchLocationForecast(cityID, callback)
     }
 
