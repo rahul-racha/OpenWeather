@@ -239,23 +239,22 @@ class LocationsViewModel(application: Application) : AndroidViewModel(applicatio
                            callback(locationWeather, mBox)
                        }
                    }
+               } else {
+                   Log.e("PLACE_EXISTS", "${place.id.toString()} exists")
+                   val mBox = MessageBox(title = "Alert", message = "Place already exists")
+                   _viewStateLiveData.postValue(
+                       ViewState(
+                           isLoading = false,
+                           populateRecyclerViewData = false,
+                           newViewDataPosition = -1,
+                           updateViewDataAtPosition = -1,
+                           forecastData = null,
+                           messageBox = mBox
+
+                       ))
                }
             }
-//            TODO("show place exists alert")
-            Log.e("PLACE_EXISTS", "${place.id.toString()} exists")
-            val mBox = MessageBox(title = "Alert", message = "Place already exists")
-            _viewStateLiveData.postValue(
-                ViewState(
-                    isLoading = false,
-                    populateRecyclerViewData = false,
-                    newViewDataPosition = -1,
-                    updateViewDataAtPosition = -1,
-                    forecastData = null,
-                    messageBox = mBox
-
-            ))
         }
-//        TODO("show address is empty")
     }
 
     private fun loadWeatherForSavedLocations(locationList: List<Location>) {
